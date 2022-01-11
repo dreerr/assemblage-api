@@ -52,6 +52,7 @@ const config = {
     from: process.env.TWILIO_NUMBER,
   },
   website: process.env.WEBSITE,
+  workingDir: process.env.WORKING_DIR,
   whitelist: [null, undefined, "null"].includes(process.env.WHITE_LIST)
     ? null
     : process.env.WHITE_LIST.split(","),
