@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "export NODE_ENV=development && nodemon ./src/index.js",
     "start": "export NODE_ENV=production && node ./src/index.js",
-    "lint": "npx prettier --write src/; ./node_modules/.bin/eslint . --ext .js",
+    "lint": "npx prettier --write .; ./node_modules/.bin/eslint . --ext .js",
     "precommit": "lint-staged",
     "test": "mocha"
   },
@@ -41,6 +41,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "chai-as-promised": "^7.1.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-standard": "^16.0.3",
