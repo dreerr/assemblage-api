@@ -1,6 +1,6 @@
-import config from './config.js'
-import server from './server.js'
-import scheduler from './scheduler.js'
+import config from "./config.js"
+import server from "./server.js"
+import scheduler from "./scheduler.js"
 // import { createAdmin, counter } from './bootstrap.js';
 
 server.listen(config.port, () => {

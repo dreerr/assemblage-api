@@ -1,23 +1,23 @@
-import express from 'express'
-import compress from 'compression'
-import cors from 'cors'
-import helmet from 'helmet'
-import Ddos from 'ddos'
-import ExpressLogs from 'express-server-logs'
-import routes from './router.js'
-import config from './config.js'
+import express from "express"
+import compress from "compression"
+import cors from "cors"
+import helmet from "helmet"
+import Ddos from "ddos"
+import ExpressLogs from "express-server-logs"
+import routes from "./router.js"
+import config from "./config.js"
 
 const ddosInstance = new Ddos(config.ddosConfig)
 
 const corsOptions = {
-  exposedHeaders: 'authorization, x-refresh-token, x-token-expiry-time',
+  exposedHeaders: "authorization, x-refresh-token, x-token-expiry-time",
   origin: (origin, callback) => {
     if (!config.whitelist || config.whitelist.includes(origin)) {
       callback(null, true)
     } else {
-      callback(new Error('Not allowed by CORS'))
+      callback(new Error("Not allowed by CORS"))
     }
-  }
+  },
 }
 
 /**
@@ -47,9 +47,9 @@ app.use(helmet())
 app.use(cors(corsOptions))
 
 // mount api v1 routes
-app.use('/healthcheck', (req, res) => res.send('OK'))
-app.use('/api', routes)
-app.use('/*', (req, res) => res.send('Not Found'))
+app.use("/healthcheck", (req, res) => res.send("OK"))
+app.use("/api", routes)
+app.use("/*", (req, res) => res.send("Not Found"))
 
 // if error is not an instanceOf APIError, convert it.
 // app.use(error.converter);
