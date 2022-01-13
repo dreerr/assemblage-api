@@ -8,7 +8,7 @@ import stream from "stream"
 import fs from "node:fs"
 import { ERC1155Metadata } from "multi-token-standard-abi"
 import dataUriToBuffer from "data-uri-to-buffer"
-import { provider, ipfsGateway, openSeaAsset } from "./util.js"
+import { providers, ipfsGateway, openSeaAsset } from "./util.js"
 import path from "path"
 
 const ERC721 = JSON.parse(
@@ -71,7 +71,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
 
   // 3. TRY ERC721 MANUAL
   let tokenURI
-  const contract = new ethers.Contract(address, ERC721, provider(chainId))
+  const contract = new ethers.Contract(address, ERC721, providers[chainId])
   try {
     tokenURI = await contract.tokenURI(tokenId)
   } catch (error) {
@@ -83,7 +83,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
     const contract = new ethers.Contract(
       address,
       ERC1155Metadata.abi,
-      provider(chainId)
+      providers[chainId]
     )
     try {
       tokenURI = await contract.uri(tokenId)
