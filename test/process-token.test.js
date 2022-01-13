@@ -69,6 +69,6 @@ describe("Processing", function () {
         transactionHash: "0x0",
       })
       await expect(promise).to.eventually.contain("image")
-    }).timeout(30000)
+    }).timeout(60000)
   })
 })

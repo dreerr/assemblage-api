@@ -11,6 +11,11 @@
     "precommit": "lint-staged",
     "test": "mocha"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "data/*"
+    ]
+  },
   "author": "dreerr",
   "license": "All rights reserved",
   "dependencies": {
@@ -38,7 +43,8 @@
     "multi-token-standard-abi": "^1.0.4",
     "node-schedule": "^2.1.0",
     "twilio": "^3.72.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "winston-telegram": "^2.5.0"
   },
   "devDependencies": {
     "chai-as-promised": "^7.1.1",

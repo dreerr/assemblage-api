@@ -8,8 +8,9 @@ import stream from "stream"
 import fs from "node:fs"
 import { ERC1155Metadata } from "multi-token-standard-abi"
 import dataUriToBuffer from "data-uri-to-buffer"
-import { providers, ipfsGateway, openSeaAsset } from "./util.js"
 import path from "path"
+import { logger } from "../logger.js"
+import { providers, ipfsGateway, openSeaAsset } from "./util.js"
 
 const ERC721 = JSON.parse(
   fs.readFileSync("./node_modules/@nibbstack/erc721/abi/NFTokenMetadata.json")
@@ -27,31 +28,27 @@ export const downloadToken = async (opts) => {
     return await getTokenImage({ ...result, ...opts })
   } catch (error) {
     if (result && result.live === false) {
-      console.log("Error downloading image, trying with live metadata")
+      logger.warn("Error downloading image, trying with live metadata")
       const liveResult = await getTokenMetadata({ ...opts, useLive: true })
-      try {
-        return await getTokenImage({ ...liveResult, ...opts })
-      } catch (error) {
-        console.log("could not download image")
-        throw error
-      }
+      return await getTokenImage({ ...liveResult, ...opts }) // may throw
     } else {
-      console.log("could not download metadata or image")
-      throw error
+      throw Error(`Error getting metadata (${error.code})`)
     }
   }
 }
 
 const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
+  logger.info(`Getting ${address} / ${tokenId} on ${chainId}, live: ${useLive}`)
   if (!useLive && chainId !== "localhost") {
     // 1. TRY OPENSEA
     try {
       const metadata = await got(openSeaAsset(chainId, address, tokenId)).json()
       if (imageField(metadata)) {
+        logger.debug(`Found metadata with OpenSea`)
         return { metadata, live: false }
       }
     } catch (error) {
-      console.log("no luck with OpenSea")
+      logger.warn(`${address} / ${tokenId} not found on OpenSea`)
     }
 
     // 2.  TRY MORALIS
@@ -61,11 +58,12 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       if (tokenData.metadata) {
         const metadata = JSON.parse(tokenData.metadata)
         if (imageField(metadata)) {
+          logger.debug(`Found metadata on Moralis`)
           return { metadata, live: false }
         }
       }
     } catch (error) {
-      console.log("No luck with Moralis, falling back to manual")
+      logger.warn(`${address} / ${tokenId} not found on Moralis`)
     }
   }
 
@@ -75,7 +73,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
   try {
     tokenURI = await contract.tokenURI(tokenId)
   } catch (error) {
-    console.log("No ERC721, trying different")
+    logger.warn("No ERC721, trying different")
   }
 
   // 4. TRY ERC1155
@@ -89,6 +87,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       tokenURI = await contract.uri(tokenId)
       tokenURI = tokenURI.replace("{id}", String(tokenId).padStart(64, "0"))
     } catch (error) {
+      logger.error(`${address} / ${tokenId} has no valid format, do manually!`)
       throw Error("No valid token format!")
     }
   }
@@ -96,17 +95,22 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
   // 5. GET METADATA FOR ERC721 OR ERCC1155
   let metadata
   if (tokenURI.startsWith("data")) {
+    logger.debug(`Token is dataURI encoded`)
     const data = dataUriToBuffer(tokenURI).toString()
     try {
       const metadata = JSON.parse(data)
       return { metadata, live: true }
     } catch (error) {
+      logger.warn(
+        `${address} / ${tokenId} dataURI could not be decoded, maybe image`
+      )
       return { metadata: { image_data: data }, live: true }
     }
   } else {
     tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, ipfsGateway)
     metadata = await got(tokenURI).json()
   }
+  logger.debug(`Found metadata manually`)
   return { metadata, live: true }
 }
 
@@ -118,9 +122,9 @@ const imageField = (metadata) =>
 
 const getTokenImage = async ({ metadata, workingDir }) => {
   const url = imageField(metadata)
-  fs.mkdirSync(workingDir, { recursive: true })
   const filePath = path.join(workingDir, "source")
   if (url.startsWith("<svg")) {
+    logger.debug(`Image is SVG`)
     fs.writeFileSync(filePath + ".svg", url)
     return filePath + ".svg"
   } else if (url.startsWith("ipfs")) {
@@ -128,7 +132,7 @@ const getTokenImage = async ({ metadata, workingDir }) => {
   } else if (url.startsWith("http")) {
     return await downloadImage({ url, filePath })
   } else {
-    throw Error("Could not determine url type!")
+    throw Error("Could not determine image URL type!")
   }
 }
 
@@ -145,10 +149,12 @@ const downloadImage = async ({ url, filePath }) => {
   })
   const type = head.headers["content-type"]
   const contentType = mime.contentType(type)
-  if (!contentType.startsWith("image/"))
-    return new Error(mime.extension(contentType) + " not an image!")
+  if (!contentType.startsWith("image/")) {
+    throw Error(`${contentType} is not an image`)
+  }
 
   const filePathWithExt = `${filePath}.${mime.extension(contentType)}`
   await pipeline(got.stream.get(url), fs.createWriteStream(filePathWithExt))
+  logger.debug(`sucessfully wrote image`)
   return filePathWithExt
 }

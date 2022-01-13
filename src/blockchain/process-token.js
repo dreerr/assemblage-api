@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, writeFileSync } from "fs"
 import config from "../config.js"
 import { metadata } from "./util.js"
 import dotenv from "dotenv"
+import { logger } from "../logger.js"
 dotenv.config()
 
 export const processToken = async ({
@@ -17,9 +18,7 @@ export const processToken = async ({
   const workingDir = path.resolve(
     path.join(config.workingDir, chainId.toString(), tokenId.toString())
   )
-  console.log(
-    `Processing ${sourceContract} / #${sourceTokenId} at "${workingDir}"`
-  )
+  logger.info(`Processing ${sourceContract} / ${sourceTokenId} on ${chainId}`)
   const destinationData = path.join(workingDir, "data.json")
   const destinationImage = path.join(workingDir, "image.svg")
   if (!existsSync(workingDir)) {
@@ -50,7 +49,10 @@ export const processToken = async ({
       workingDir,
     })
   } catch (error) {
-    console.log("cannot download source image FATAL!!!", error)
+    logger.error(
+      `Token #${tokenId} (${sourceContract} / ${sourceTokenId} ` +
+        `on ${chainId}) could not download – ${error}`
+    )
   }
 
   // 3. MAKE ASSEMBLAGE
