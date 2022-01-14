@@ -1,11 +1,11 @@
-import { downloadToken } from "./download-token.js"
-import { addToQueue } from "assemblage-algorithm"
 import path from "path"
-import { existsSync, mkdirSync, writeFileSync } from "fs"
-import config from "../config.js"
-import { metadata } from "./util.js"
 import dotenv from "dotenv"
+import config from "../config.js"
 import { logger } from "../logger.js"
+import { existsSync, mkdirSync, writeFileSync } from "fs"
+import { addToQueue } from "assemblage-algorithm"
+import { downloadToken } from "./download-token.js"
+import { metadata } from "./util.js"
 dotenv.config()
 
 export const processToken = async ({

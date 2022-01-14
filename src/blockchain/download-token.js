@@ -38,7 +38,9 @@ export const downloadToken = async (opts) => {
 }
 
 const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
-  logger.info(`Getting ${address} / ${tokenId} on ${chainId}, live: ${useLive}`)
+  logger.info(
+    `Getting ${address} / ${tokenId} on ${chainId}, live: ${useLive ? "yes" : "no"}`
+  )
   if (!useLive && chainId !== "localhost") {
     // 1. TRY OPENSEA
     try {
