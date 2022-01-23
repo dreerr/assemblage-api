@@ -4,6 +4,7 @@ import cors from "cors"
 import helmet from "helmet"
 import Ddos from "ddos"
 import ExpressLogs from "express-server-logs"
+import requestIp from "request-ip"
 import routes from "./router.js"
 import config from "./config.js"
 
@@ -34,7 +35,7 @@ app.use(ddosInstance.express)
 // parse body params and attache them to req.body
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-
+app.use(requestIp.mw())
 app.use(xlogs.logger)
 
 // gzip compression
