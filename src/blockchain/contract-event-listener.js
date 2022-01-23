@@ -1,12 +1,13 @@
 import { activeChains, contractOnChain } from "./util.js"
 import { processToken } from "./process-token.js"
 
-const setupListeners = () => {
+export const setupListeners = () => {
   activeChains.forEach(listenOnChain)
 }
 
 const listenOnChain = (chainId) => {
   const contract = contractOnChain(chainId)
+  if (!contract) return
   contract.on("SourceTokenMinted", (source, id, to, event) => {
     const opts = {
       sourceContract: source.sourceContract,
@@ -17,7 +18,3 @@ const listenOnChain = (chainId) => {
     processToken(opts)
   })
 }
-
-;(async () => {
-  setupListeners()
-})()

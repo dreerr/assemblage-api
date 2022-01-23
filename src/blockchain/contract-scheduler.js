@@ -4,6 +4,7 @@ import { processToken } from "./process-token.js"
 export const checkMintedTokens = async () => {
   activeChains().forEach(async (chainId) => {
     const contract = contractOnChain(chainId)
+    if (!contract) return
     const totalSupply = await contract.totalSupply()
     for (let index = 0; index < totalSupply; index++) {
       const source = await contract.sourceTokens(index)
@@ -18,6 +19,3 @@ export const checkMintedTokens = async () => {
     }
   })
 }
-;(async () => {
-  checkMintedTokens()
-})()

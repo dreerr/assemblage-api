@@ -1,5 +1,6 @@
 import { ethers } from "ethers"
 import { readFileSync } from "fs"
+import { logger } from "../logger.js"
 import dotenv from "dotenv"
 dotenv.config()
 
@@ -33,11 +34,18 @@ export const contractOnChain = (chainId) => {
   if (!contracts[chainId]) {
     const contractAddress = addresses.Assemblage[chainNums[chainId]]
     const provider = providers[chainId]
-    contracts[chainId] = new ethers.Contract(
-      contractAddress,
-      contractInterface.abi,
-      provider
-    )
+    try {
+      contracts[chainId] = new ethers.Contract(
+        contractAddress,
+        contractInterface.abi,
+        provider
+      )
+    } catch (error) {
+      logger.error(
+        `Could not instanciate contract on chain ${chainId} ${error}`
+      )
+      return
+    }
   }
   return contracts[chainId]
 }
@@ -57,15 +65,23 @@ const imageBaseURI = {
   rinkeby: process.env.BASE_URI_RINKEBY,
 }
 
-export const metadata = (opts) =>
-  JSON.stringify(
+export const metadata = (opts) => {
+  const sourceTokenLink =
+    (opts.chainId !== "mainnet"
+      ? "https://testnets.opensea.io/"
+      : "https://opensea.io/") +
+    `assets/${opts.sourceContract}/${opts.sourceTokenId}`
+  return JSON.stringify(
     {
       name: `Assemblage #${opts.tokenId}`,
-      image: `${imageBaseURI[opts.chainId]}image.png`,
-      sourceContract: opts.address,
-      sourceTokenId: opts.tokenId,
-      description: `Lorem ipsum`,
+      image: `${imageBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
+      image_original: `${imageBaseURI[opts.chainId]}${opts.tokenId}/image.svg`,
+      sourceContract: opts.sourceContract,
+      sourceTokenId: opts.sourceTokenId,
+      description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.
+      [Source Token](${sourceTokenLink})`,
     },
     null,
     2
   )
+}
