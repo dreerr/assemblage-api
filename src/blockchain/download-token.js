@@ -32,7 +32,7 @@ export const downloadToken = async (opts) => {
       const liveResult = await getTokenMetadata({ ...opts, useLive: true })
       return await getTokenImage({ ...liveResult, ...opts }) // may throw
     } else {
-      throw Error(`Error getting metadata (${error.code})`)
+      throw Error(`Error getting metadata or image (${error.code || error})`)
     }
   }
 }
