@@ -2,21 +2,6 @@ import dotenv from "dotenv"
 dotenv.config()
 
 const config = {
-  allowedMedia: [
-    "jpg",
-    "jpeg",
-    "png",
-    "gif",
-    "avi",
-    "mov",
-    "3gp",
-    "mp4",
-    "mkv",
-    "mpeg",
-    "mpg",
-    "mp3",
-    "pdf",
-  ],
   baseUrl: process.env.BASE_URL,
   ddosConfig: {
     burst: process.env.DDOS_BRUST,
@@ -34,24 +19,13 @@ const config = {
       verification: process.env.VERIFICATION_EMAIL_TEMPLATE,
     },
   },
-  env: process.env.NODE_ENV,
-  fcm: { "server-key": process.env.FCM_SERVER_KEY },
-  // JWT expiry time in minutes
-  jwtExpirationInterval: process.env.JWT_EXPIRATION_INTERVAL,
-  jwtSecret: process.env.JWT_SECRET,
-  mediaTypes: ["photo", "video", "document"],
-  mongo: { uri: process.env.DB_CONNECTION_STRING },
-  port: process.env.PORT,
-  roles: ["admin", "user"],
-  socketPort: process.env.SOCKET_PORT,
-  socketUrl: process.env.SOCKET_URL,
-  twilioConfig: {
-    // Your Account SID from www.twilio.com/console
-    accountSid: process.env.TWILIO_ACCOUNT_ID,
-    authToken: process.env.TWILIO_AUTH_TOKEN,
-    from: process.env.TWILIO_NUMBER,
+  moralis: {
+    serverUrl: process.env.MORALIS_SERVER_URL,
+    appId: process.env.MORALIS_APPLICATION_ID,
   },
-  website: process.env.WEBSITE,
+  env: process.env.NODE_ENV,
+  port: process.env.PORT,
+  unsafeHttps: process.env.UNSAFE_HTTPS,
   workingDir: process.env.WORKING_DIR,
   whitelist: [null, undefined, "null"].includes(process.env.WHITE_LIST)
     ? null
