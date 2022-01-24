@@ -5,8 +5,8 @@ import helmet from "helmet"
 import Ddos from "ddos"
 import ExpressLogs from "express-server-logs"
 import requestIp from "request-ip"
-import routes from "./router.js"
 import config from "./config.js"
+import api from "./api.js"
 
 const ddosInstance = new Ddos(config.ddosConfig)
 
@@ -21,44 +21,22 @@ const corsOptions = {
   },
 }
 
-/**
- * Express instance
- * @public
- */
-
 const app = express()
-const xlogs = new ExpressLogs(false)
 
-// npm module for preventing ddos attack. See more https://www.npmjs.com/package/ddos
+if (config.env === "development") {
+  const xlogs = new ExpressLogs(false)
+  app.use(xlogs.logger)
+}
+
 app.use(ddosInstance.express)
-
-// parse body params and attache them to req.body
 app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
 app.use(requestIp.mw())
-app.use(xlogs.logger)
-
-// gzip compression
 app.use(compress())
-
-// secure apps by setting various HTTP headers
 app.use(helmet())
-
-// enable CORS - Cross Origin Resource Sharing
 app.use(cors(corsOptions))
 
-// mount api v1 routes
-app.use("/healthcheck", (req, res) => res.send("OK"))
-app.use("/api", routes)
+app.use("/api/healthcheck", (req, res) => res.send("OK"))
+app.use("/api", api)
 app.use("/*", (req, res) => res.send("Not Found"))
-
-// if error is not an instanceOf APIError, convert it.
-// app.use(error.converter);
-
-// // catch 404 and forward to error handler
-// app.use(error.notFound);
-
-// // error handler, send stacktrace only during development
-// app.use(error.handler);
 
 export default app

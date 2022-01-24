@@ -9,8 +9,8 @@ import fs from "node:fs"
 import { ERC1155Metadata } from "multi-token-standard-abi"
 import dataUriToBuffer from "data-uri-to-buffer"
 import path from "path"
-import { logger } from "../logger.js"
-import { providers, ipfsGateway, openSeaAsset } from "./util.js"
+import { logger } from "../utils/logger.js"
+import { providers, ipfsGateway, openSeaAsset } from "./blockchain-utils.js"
 
 const ERC721 = JSON.parse(
   fs.readFileSync("./node_modules/@nibbstack/erc721/abi/NFTokenMetadata.json")
@@ -112,7 +112,9 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
     }
   } else {
     tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, ipfsGateway)
-    metadata = await got(tokenURI).json()
+    metadata = await got(tokenURI, {
+      https: { rejectUnauthorized: false },
+    }).json()
   }
   logger.debug(`Found metadata manually`)
   return { metadata, live: true }
@@ -150,6 +152,7 @@ const downloadImage = async ({ url, filePath }) => {
     headers: {
       Range: "bytes=0-16",
     },
+    https: { rejectUnauthorized: false },
   })
   const type = head.headers["content-type"]
   const contentType = mime.contentType(type)
@@ -158,7 +161,10 @@ const downloadImage = async ({ url, filePath }) => {
   }
 
   const filePathWithExt = `${filePath}.${mime.extension(contentType)}`
-  await pipeline(got.stream.get(url), fs.createWriteStream(filePathWithExt))
+  await pipeline(
+    got.stream.get(url, { https: { rejectUnauthorized: false } }),
+    fs.createWriteStream(filePathWithExt)
+  )
   logger.debug(`sucessfully wrote image`)
   return filePathWithExt
 }

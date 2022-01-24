@@ -1,7 +1,15 @@
-import { activeChains, contractOnChain } from "./util.js"
+import schedule from "node-schedule"
+import { activeChains, contractOnChain } from "./blockchain-utils.js"
 import { processToken } from "./process-token.js"
 
-export const checkMintedTokens = async () => {
+export default async () => {
+  checkMintedTokens()
+  const rule = new schedule.RecurrenceRule()
+  rule.minute = [0, 10, 20, 30, 40, 50]
+  schedule.scheduleJob(rule, checkMintedTokens)
+}
+
+const checkMintedTokens = async () => {
   activeChains().forEach(async (chainId) => {
     const contract = contractOnChain(chainId)
     if (!contract) return
@@ -13,7 +21,7 @@ export const checkMintedTokens = async () => {
         sourceTokenId: source.sourceTokenId.toString(),
         tokenId: index,
         chainId,
-        overwrite: true,
+        overwrite: false,
       }
       processToken(opts)
     }

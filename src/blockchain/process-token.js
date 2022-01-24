@@ -1,11 +1,11 @@
 import path from "path"
 import dotenv from "dotenv"
 import config from "../config.js"
-import { logger } from "../logger.js"
+import { logger } from "../utils/logger.js"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { addToQueue } from "assemblage-algorithm"
 import { downloadToken } from "./download-token.js"
-import { metadata } from "./util.js"
+import { metadata } from "./blockchain-utils.js"
 dotenv.config()
 
 export const processToken = async ({
@@ -18,14 +18,17 @@ export const processToken = async ({
   const workingDir = path.resolve(
     path.join(config.workingDir, chainId.toString(), tokenId.toString())
   )
-  logger.info(`Processing ${sourceContract} / ${sourceTokenId} on ${chainId}`)
+  const tokenInfo = `${sourceContract} / ${sourceTokenId} on ${chainId}`
+  logger.debug(`Checking ${tokenInfo}`)
   const destinationData = path.join(workingDir, "data.json")
   const destinationImage = path.join(workingDir, "image.svg")
   if (!existsSync(workingDir)) {
+    logger.debug(`Creating directory ${workingDir}`)
     mkdirSync(workingDir, { recursive: true })
   }
   // TODO 1. WRITE METADATA
   if (!existsSync(destinationData) || opts.overwrite) {
+    logger.debug(`Writing metadata ${destinationData}`)
     writeFileSync(
       destinationData,
       metadata({
@@ -37,10 +40,13 @@ export const processToken = async ({
     )
   }
 
-  if (existsSync(destinationImage)) return destinationImage
-
+  if (existsSync(destinationImage)) {
+    logger.debug(`Already exists ${destinationImage}`)
+    return destinationImage
+  }
   // 2. GET SOURCE IMAGE
   let sourceImage
+  logger.info(`Getting source for ${tokenInfo}`)
   try {
     sourceImage = await downloadToken({
       address: sourceContract,
@@ -57,6 +63,7 @@ export const processToken = async ({
 
   // 3. MAKE ASSEMBLAGE
   if (existsSync(sourceImage)) {
+    logger.info(`Getting source for ${tokenInfo}`)
     return await addToQueue(sourceImage, destinationImage, {
       seed: sourceContract + sourceTokenId,
     })

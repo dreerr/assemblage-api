@@ -68,6 +68,6 @@ describe("Processing", function () {
         chainId: token.chainId,
       })
       await expect(promise).to.eventually.contain("/image.")
-    }).timeout(60000)
+    }).timeout(120000)
   })
 })

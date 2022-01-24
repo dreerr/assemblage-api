@@ -25,6 +25,7 @@
     "assemblage-algorithm": "file:../assemblage-algorithm",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
+    "csv-write-stream": "^2.0.0",
     "data-uri-to-buffer": "^4.0.0",
     "ddos": "^0.2.1",
     "dotenv": "^10.0.0",
