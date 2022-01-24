@@ -1,6 +1,5 @@
 import { ethers } from "ethers"
 import Moralis from "moralis/node.js"
-import dotenv from "dotenv"
 import got from "got"
 import mime from "mime-types"
 import { promisify } from "node:util"
@@ -11,15 +10,16 @@ import dataUriToBuffer from "data-uri-to-buffer"
 import path from "path"
 import { logger } from "../utils/logger.js"
 import { providers, ipfsGateway, openSeaAsset } from "./blockchain-utils.js"
+import config from "../config.js"
 
 const ERC721 = JSON.parse(
   fs.readFileSync("./node_modules/@nibbstack/erc721/abi/NFTokenMetadata.json")
 )
 const pipeline = promisify(stream.pipeline)
-dotenv.config()
-const serverUrl = process.env.MORALIS_SERVER_URL
-const appId = process.env.MORALIS_APPLICATION_ID
-Moralis.start({ serverUrl, appId })
+
+const gotOptions = { https: { rejectUnauthorized: !config.unsafeHttps } }
+
+Moralis.start(config.moralis)
 
 export const downloadToken = async (opts) => {
   let result
@@ -112,9 +112,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
     }
   } else {
     tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, ipfsGateway)
-    metadata = await got(tokenURI, {
-      https: { rejectUnauthorized: false },
-    }).json()
+    metadata = await got(tokenURI, gotOptions).json()
   }
   logger.debug(`Found metadata manually`)
   return { metadata, live: true }
@@ -152,7 +150,7 @@ const downloadImage = async ({ url, filePath }) => {
     headers: {
       Range: "bytes=0-16",
     },
-    https: { rejectUnauthorized: false },
+    ...gotOptions,
   })
   const type = head.headers["content-type"]
   const contentType = mime.contentType(type)
@@ -162,7 +160,7 @@ const downloadImage = async ({ url, filePath }) => {
 
   const filePathWithExt = `${filePath}.${mime.extension(contentType)}`
   await pipeline(
-    got.stream.get(url, { https: { rejectUnauthorized: false } }),
+    got.stream.get(url, gotOptions),
     fs.createWriteStream(filePathWithExt)
   )
   logger.debug(`sucessfully wrote image`)

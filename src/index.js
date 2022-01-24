@@ -3,6 +3,10 @@ import server from "./server.js"
 import contractListener from "./blockchain/contract-listener.js"
 import contractScheduler from "./blockchain/contract-scheduler.js"
 
+if (config.unsafeHttps) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+}
+
 server.listen(config.port, () => {
   contractListener()
   contractScheduler()
