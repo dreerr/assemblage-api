@@ -9,7 +9,7 @@ export default () => {
 const listenOnChain = (chainId) => {
   const contract = contractOnChain(chainId)
   if (!contract) return
-  logger.info(`Listening on '${chainId}' for 'SourceTokenMinted'`)
+  logger.info(`Listening for 'SourceTokenMinted' on ${chainId}`)
   contract.on("SourceTokenMinted", (source, id, to, event) => {
     const opts = {
       sourceContract: source.sourceContract,

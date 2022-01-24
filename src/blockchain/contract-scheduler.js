@@ -1,4 +1,5 @@
 import schedule from "node-schedule"
+import { logger } from "../utils/logger.js"
 import { activeChains, contractOnChain } from "./blockchain-utils.js"
 import { processToken } from "./process-token.js"
 
@@ -12,8 +13,13 @@ export default async () => {
 const checkMintedTokens = async () => {
   activeChains().forEach(async (chainId) => {
     const contract = contractOnChain(chainId)
-    if (!contract) return
-    const totalSupply = await contract.totalSupply()
+    let totalSupply = 0
+    try {
+      totalSupply = await contract.totalSupply()
+    } catch (error) {
+      logger.error(`Could not get 'contract.totalSupply()' on ${chainId}`)
+      return
+    }
     for (let index = 0; index < totalSupply; index++) {
       const source = await contract.sourceTokens(index)
       const opts = {
