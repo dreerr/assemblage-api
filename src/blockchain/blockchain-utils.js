@@ -4,11 +4,16 @@ import { logger } from "../utils/logger.js"
 import dotenv from "dotenv"
 dotenv.config()
 
-if(!existsSync(process.env.CONTRACT_ADRESSESS) || !existsSync(process.env.CONTRACT_INTERFACE)) {
-  throw new Error('Contract interface and adresses incomplete');
+if (
+  !existsSync(process.env.CONTRACT_ADRESSESS) ||
+  !existsSync(process.env.CONTRACT_INTERFACE)
+) {
+  throw new Error("Contract interface and adresses incomplete")
 }
 
-export const addresses = JSON.parse(readFileSync(process.env.CONTRACT_ADRESSESS))
+export const addresses = JSON.parse(
+  readFileSync(process.env.CONTRACT_ADRESSESS)
+)
 export const contractInterface = JSON.parse(
   readFileSync(process.env.CONTRACT_INTERFACE)
 )

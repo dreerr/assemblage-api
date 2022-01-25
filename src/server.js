@@ -1,6 +1,5 @@
 import express from "express"
 import compress from "compression"
-import cors from "cors"
 import helmet from "helmet"
 import Ddos from "ddos"
 import ExpressLogs from "express-server-logs"
