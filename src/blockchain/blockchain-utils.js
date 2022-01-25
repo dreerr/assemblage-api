@@ -85,8 +85,8 @@ export const metadata = (opts) => {
       name: `Assemblage #${opts.tokenId}`,
       image: `${imageBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
       image_original: `${imageBaseURI[opts.chainId]}${opts.tokenId}/image.svg`,
-      sourceContract: opts.sourceContract,
-      sourceTokenId: opts.sourceTokenId,
+      source_contract: opts.sourceContract,
+      source_token_id: opts.sourceTokenId,
       description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.
       [Source Token](${sourceTokenLink})`,
     },
