@@ -8,19 +8,6 @@ import requestIp from "request-ip"
 import config from "./config.js"
 import api from "./api.js"
 
-const ddosInstance = new Ddos(config.ddosConfig)
-
-const corsOptions = {
-  exposedHeaders: "authorization, x-refresh-token, x-token-expiry-time",
-  origin: (origin, callback) => {
-    if (!config.whitelist || config.whitelist.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error("Not allowed by CORS"))
-    }
-  },
-}
-
 const app = express()
 
 if (config.env === "development") {
@@ -28,12 +15,23 @@ if (config.env === "development") {
   app.use(xlogs.logger)
 }
 
+const ddosInstance = new Ddos(config.ddosConfig)
 app.use(ddosInstance.express)
 app.use(express.json())
 app.use(requestIp.mw())
 app.use(compress())
 app.use(helmet())
-app.use(cors(corsOptions))
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+  if (config.whitelist.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin)
+  }
+  res.header("Access-Control-Allow-Methods", "GET, OPTIONS")
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  res.header("Access-Control-Allow-Credentials", true)
+  return next()
+})
 
 app.use("/api/healthcheck", (req, res) => res.send("OK"))
 app.use("/api", api)
