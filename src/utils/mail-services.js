@@ -1,5 +1,5 @@
 import sendGridEmail from "@sendgrid/mail"
-import config from "../config"
+import config from "../config.js"
 
 sendGridEmail.setApiKey(config.emails["api-key"])
 

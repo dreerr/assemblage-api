@@ -1,6 +1,9 @@
+import config from "./config.js"
 import express from "express"
 import { logMint, logOrder } from "./utils/csv.js"
 import { logger } from "./utils/logger.js"
+import mailServices from "./utils/mail-services.js"
+
 const router = express.Router()
 
 router.post("/mint", function (req, res) {
@@ -30,9 +33,17 @@ router.post("/order", function (req, res) {
     order: req.body.order,
     ip: req.clientIp || req.ip,
   }
+  res.send({ status: "ok" })
   logOrder(data)
   logger.info(`New order ${JSON.stringify(data)}`)
-  res.send({ status: "ok" })
+
+  const msg = {
+    to: config.emails.to,
+    subject: `New order from Assemblage on ${data.order.network} 🎉`,
+    html: `<h1>New order on ${data.order.network}</h1>
+  <pre>${JSON.stringify(data, null, 2)}</pre>`,
+  }
+  mailServices(msg)
 })
 
 export default router

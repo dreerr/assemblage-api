@@ -13,11 +13,9 @@ const config = {
       email: process.env.SENDER_EMAIL,
       name: process.env.SENDER_NAME,
     },
-    templates: {
-      "invite-email": process.env.INVITE_EMAIL_TEMPLATE,
-      "reset-password": process.env.RESET_PASSWORD_EMAIL_TEMPLATE,
-      verification: process.env.VERIFICATION_EMAIL_TEMPLATE,
-    },
+    to: [null, undefined, "null"].includes(process.env.SENDER_RECEPIENTS)
+      ? null
+      : process.env.SENDER_RECEPIENTS.split(","),
   },
   moralis: {
     serverUrl: process.env.MORALIS_SERVER_URL,
