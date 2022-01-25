@@ -1,12 +1,16 @@
 import { ethers } from "ethers"
-import { readFileSync } from "fs"
+import { readFileSync, existsSync } from "fs"
 import { logger } from "../utils/logger.js"
 import dotenv from "dotenv"
 dotenv.config()
 
-export const addresses = JSON.parse(readFileSync("./contracts/addresses.json"))
+if(!existsSync(process.env.CONTRACT_ADRESSESS) || !existsSync(process.env.CONTRACT_INTERFACE)) {
+  throw new Error('Contract interface and adresses incomplete');
+}
+
+export const addresses = JSON.parse(readFileSync(process.env.CONTRACT_ADRESSESS))
 export const contractInterface = JSON.parse(
-  readFileSync("./contracts/Assemblage.json")
+  readFileSync(process.env.CONTRACT_INTERFACE)
 )
 
 const chainNums = {
