@@ -112,6 +112,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
     }
   } else {
     tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, ipfsGateway)
+    logger.debug(`Getting token metadata at ${tokenURI}`)
     metadata = await got(tokenURI, gotOptions).json()
   }
   logger.debug(`Found metadata manually`)
@@ -125,28 +126,26 @@ const imageField = (metadata) =>
   metadata.image_data
 
 const getTokenImage = async ({ metadata, workingDir }) => {
-  const url = imageField(metadata)
-  const filePath = path.join(workingDir, "source")
-  if (url.startsWith("<svg")) {
+  const imageUrl = imageField(metadata).replace(
+    /^ipfs:\/\/(ipfs\/)*/,
+    ipfsGateway
+  )
+  let filePath = path.join(workingDir, "source")
+  if (imageUrl.startsWith("<svg")) {
     logger.debug(`Image is SVG`)
-    fs.writeFileSync(filePath + ".svg", url)
-    return filePath + ".svg"
-  } else if (url.startsWith("ipfs")) {
-    return await downloadIpfs({ url, filePath })
-  } else if (url.startsWith("http")) {
-    return await downloadImage({ url, filePath })
+    filePath += ".svg"
+    fs.writeFileSync(filePath, imageUrl)
+  } else if (imageUrl.startsWith("http")) {
+    filePath = await downloadImage({ imageUrl, filePath })
   } else {
     throw Error("Could not determine image URL type!")
   }
+  return { filePath, metadata }
 }
 
-const downloadIpfs = ({ url, filePath }) => {
-  url = url.replace(/^ipfs:\/\/(ipfs\/)*/, ipfsGateway)
-  return downloadImage({ url, filePath })
-}
-
-const downloadImage = async ({ url, filePath }) => {
-  const head = await got(url, {
+const downloadImage = async ({ imageUrl, filePath }) => {
+  logger.debug(`Probing image at ${imageUrl}`)
+  const head = await got(imageUrl, {
     headers: {
       Range: "bytes=0-16",
     },
@@ -160,7 +159,7 @@ const downloadImage = async ({ url, filePath }) => {
 
   const filePathWithExt = `${filePath}.${mime.extension(contentType)}`
   await pipeline(
-    got.stream.get(url, gotOptions),
+    got.stream.get(imageUrl, gotOptions),
     fs.createWriteStream(filePathWithExt)
   )
   logger.debug(`sucessfully wrote image`)

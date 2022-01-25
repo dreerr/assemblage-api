@@ -45,10 +45,10 @@ export const processToken = async ({
     return destinationImage
   }
   // 2. GET SOURCE IMAGE
-  let sourceImage
-  logger.info(`Getting source for ${tokenInfo}`)
+  logger.info(`Getting source image for ${tokenInfo}`)
+  let sourceToken
   try {
-    sourceImage = await downloadToken({
+    sourceToken = await downloadToken({
       address: sourceContract,
       tokenId: sourceTokenId,
       chainId,
@@ -59,13 +59,17 @@ export const processToken = async ({
       `Token #${tokenId} (${sourceContract} / ${sourceTokenId} ` +
         `on ${chainId}) could not download – ${error}`
     )
+    return
   }
 
   // 3. MAKE ASSEMBLAGE
-  if (existsSync(sourceImage)) {
-    logger.info(`Getting source for ${tokenInfo}`)
-    return await addToQueue(sourceImage, destinationImage, {
-      seed: sourceContract + sourceTokenId,
+  if (sourceToken && existsSync(sourceToken.filePath)) {
+    logger.info(`Making Assemblage for ${tokenInfo}`)
+    const backgroundColor = sourceToken.metadata.background_color
+      ? "#" + sourceToken.metadata.background_color
+      : undefined
+    return await addToQueue(sourceToken.filePath, destinationImage, {
+      backgroundColor,
     })
   }
 }
