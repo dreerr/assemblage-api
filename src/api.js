@@ -13,7 +13,7 @@ router.post("/mint", function (req, res) {
     token_address: req.body.token_address,
     token_id: req.body.token_id,
     account: req.body.account,
-    ip: req.clientIp,
+    ip: req.clientIp || req.ip,
   }
   logMint(data)
   logger.info(`New mint ${JSON.stringify(data)}`)
@@ -28,7 +28,7 @@ router.post("/order", function (req, res) {
   const data = {
     hash: req.body.hash,
     order: req.body.order,
-    ip: req.clientIp,
+    ip: req.clientIp || req.ip,
   }
   logOrder(data)
   logger.info(`New order ${JSON.stringify(data)}`)
