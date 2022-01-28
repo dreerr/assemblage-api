@@ -13,20 +13,20 @@ export const logger = winston.createLogger({
       ),
     }),
     new winston.transports.File({
-      filename: "combined.log",
+      filename: "./log/combined.log",
       level: "info",
     }),
     new winston.transports.File({
-      filename: "errors.log",
+      filename: "./log/errors.log",
       level: "error",
     }),
   ],
   exceptionHandlers: [
-    new winston.transports.File({ filename: "exceptions.log" }),
+    new winston.transports.File({ filename: "./log/exceptions.log" }),
   ],
 })
 winston.exceptions.handle(
-  new winston.transports.File({ filename: "exceptions.log" })
+  new winston.transports.File({ filename: "./log/exceptions.log" })
 )
 
 if (process.env.TELEGRAM_ACTIVE) {
