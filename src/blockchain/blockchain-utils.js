@@ -68,10 +68,16 @@ export const openSeaAsset = (chainId, address, tokenId) => {
 
 export const ipfsGateway = "https://ipfs.moralis.io:2053/ipfs/"
 
-const imageBaseURI = {
+const apiBaseURI = {
   localhost: process.env.BASE_URI_LOCALHOST,
   mainnet: process.env.BASE_URI_MAINNET,
   rinkeby: process.env.BASE_URI_RINKEBY,
+}
+
+const externalBaseURI = {
+  localhost: process.env.EXTERNAL_URI_LOCALHOST,
+  mainnet: process.env.EXTERNAL_URI_MAINNET,
+  rinkeby: process.env.EXTERNAL_URI_RINKEBY,
 }
 
 export const metadata = (opts) => {
@@ -83,12 +89,12 @@ export const metadata = (opts) => {
   return JSON.stringify(
     {
       name: `Assemblage #${opts.tokenId}`,
-      image: `${imageBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
-      image_original: `${imageBaseURI[opts.chainId]}${opts.tokenId}/image.svg`,
+      image: `${apiBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
+      image_original: `${apiBaseURI[opts.chainId]}${opts.tokenId}/image.svg`,
       source_contract: opts.sourceContract,
       source_token_id: opts.sourceTokenId,
-      description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.
-      [Source Token](${sourceTokenLink})`,
+      external_url: `${externalBaseURI[opts.chainId]}${opts.tokenId}`,
+      description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.\n\n[Source Token](${sourceTokenLink})`,
     },
     null,
     2
