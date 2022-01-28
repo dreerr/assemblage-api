@@ -16,6 +16,7 @@ const listenOnChain = (chainId) => {
       sourceTokenId: source.sourceTokenId.toString(),
       tokenId: id.toNumber(),
       chainId,
+      overwrite: true,
     }
     processToken(opts)
   })

@@ -40,7 +40,7 @@ export const processToken = async ({
     )
   }
 
-  if (existsSync(destinationImage)) {
+  if (existsSync(destinationImage) && opts.overwrite !== true) {
     logger.debug(`Already exists ${destinationImage}`)
     return destinationImage
   }
