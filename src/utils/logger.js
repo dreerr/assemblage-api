@@ -35,7 +35,7 @@ export const logger = createLogger({
 exceptions.handle(new transports.File({ filename: "./log/exceptions.log" }))
 
 if (config.telegram.active) {
-  add(
+  logger.add(
     new TelegramLogger({
       token: config.telegram.token,
       chatId: config.telegram.chatId,
