@@ -1,39 +1,44 @@
-import winston from "winston"
+import pkg from "winston"
 import TelegramLogger from "winston-telegram"
-import dotenv from "dotenv"
-dotenv.config()
+import config from "../config.js"
+const { createLogger, format, transports, exceptions, add } = pkg
 
-export const logger = winston.createLogger({
+export const logger = createLogger({
+  format: format.combine(
+    format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    format.json()
+  ),
   transports: [
-    new winston.transports.Console({
+    new transports.Console({
       level: "debug",
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
+      format: format.combine(
+        format.colorize(),
+        format.printf(
+          (info) =>
+            `\u001b[36m${info.timestamp}\u001b[39m ${info.level}: ${info.message}`
+        )
       ),
     }),
-    new winston.transports.File({
+    new transports.File({
       filename: "./log/combined.log",
       level: "info",
     }),
-    new winston.transports.File({
+    new transports.File({
       filename: "./log/errors.log",
       level: "error",
     }),
   ],
   exceptionHandlers: [
-    new winston.transports.File({ filename: "./log/exceptions.log" }),
+    new transports.File({ filename: "./log/exceptions.log" }),
   ],
 })
-winston.exceptions.handle(
-  new winston.transports.File({ filename: "./log/exceptions.log" })
-)
+exceptions.handle(new transports.File({ filename: "./log/exceptions.log" }))
 
-if (process.env.TELEGRAM_ACTIVE) {
-  winston.add(
+if (config.telegram.active) {
+  add(
     new TelegramLogger({
-      token: process.env.TELEGRAM_TOKEN,
-      chatId: process.env.TELEGRAM_CHAT_ID,
+      token: config.telegram.token,
+      chatId: config.telegram.chatId,
       level: "error",
       formatMessage: function (options) {
         let message = options.message

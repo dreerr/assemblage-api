@@ -9,7 +9,7 @@ import { ERC1155Metadata } from "multi-token-standard-abi"
 import dataUriToBuffer from "data-uri-to-buffer"
 import path from "path"
 import { logger } from "../utils/logger.js"
-import { providers, ipfsGateway, openSeaAsset } from "./blockchain-utils.js"
+import { providers, openSeaAsset } from "./blockchain-utils.js"
 import config from "../config.js"
 
 const ERC721 = JSON.parse(
@@ -111,7 +111,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       return { metadata: { image_data: data }, live: true }
     }
   } else {
-    tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, ipfsGateway)
+    tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, config.ipfsGateway)
     logger.debug(`Getting token metadata at ${tokenURI}`)
     metadata = await got(tokenURI, gotOptions).json()
   }
@@ -128,7 +128,7 @@ const imageField = (metadata) =>
 const getTokenImage = async ({ metadata, workingDir }) => {
   const imageUrl = imageField(metadata).replace(
     /^ipfs:\/\/(ipfs\/)*/,
-    ipfsGateway
+    config.ipfsGateway
   )
   let filePath = path.join(workingDir, "source")
   if (imageUrl.startsWith("<svg")) {

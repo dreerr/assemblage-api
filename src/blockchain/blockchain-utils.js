@@ -1,21 +1,18 @@
 import { ethers } from "ethers"
 import { readFileSync, existsSync } from "fs"
 import { logger } from "../utils/logger.js"
-import dotenv from "dotenv"
-dotenv.config()
+import config from "../config.js"
 
 if (
-  !existsSync(process.env.CONTRACT_ADRESSESS) ||
-  !existsSync(process.env.CONTRACT_INTERFACE)
+  !existsSync(config.contractAddress) ||
+  !existsSync(config.contractInterface)
 ) {
   throw new Error("Contract interface and adresses incomplete")
 }
 
-export const addresses = JSON.parse(
-  readFileSync(process.env.CONTRACT_ADRESSESS)
-)
+export const addresses = JSON.parse(readFileSync(config.contractAddress))
 export const contractInterface = JSON.parse(
-  readFileSync(process.env.CONTRACT_INTERFACE)
+  readFileSync(config.contractInterface)
 )
 
 const chainNums = {
@@ -25,17 +22,13 @@ const chainNums = {
 }
 
 export const providers = {
-  mainnet: new ethers.providers.JsonRpcProvider(process.env.NODE_MAINNET),
-  rinkeby: new ethers.providers.JsonRpcProvider(process.env.NODE_RINKEBY),
-  localhost: new ethers.providers.JsonRpcProvider(process.env.NODE_LOCALHOST),
+  mainnet: new ethers.providers.JsonRpcProvider(config.node.mainnet),
+  rinkeby: new ethers.providers.JsonRpcProvider(config.node.rinkeby),
+  localhost: new ethers.providers.JsonRpcProvider(config.node.localhost),
 }
 
 export const activeChains = () => {
-  if (process.env.NODE_ENV === "production") {
-    return Array.from(["mainnet", "rinkeby"])
-  } else {
-    return Array.from(["localhost", "rinkeby"])
-  }
+  return Array.from(config.activeChains)
 }
 
 const contracts = {}
@@ -66,20 +59,6 @@ export const openSeaAsset = (chainId, address, tokenId) => {
   return url
 }
 
-export const ipfsGateway = "https://ipfs.moralis.io:2053/ipfs/"
-
-const apiBaseURI = {
-  localhost: process.env.BASE_URI_LOCALHOST,
-  mainnet: process.env.BASE_URI_MAINNET,
-  rinkeby: process.env.BASE_URI_RINKEBY,
-}
-
-const externalBaseURI = {
-  localhost: process.env.EXTERNAL_URI_LOCALHOST,
-  mainnet: process.env.EXTERNAL_URI_MAINNET,
-  rinkeby: process.env.EXTERNAL_URI_RINKEBY,
-}
-
 export const metadata = (opts) => {
   const sourceTokenLink =
     (opts.chainId !== "mainnet"
@@ -89,11 +68,13 @@ export const metadata = (opts) => {
   return JSON.stringify(
     {
       name: `Assemblage #${opts.tokenId}`,
-      image: `${apiBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
-      image_original: `${apiBaseURI[opts.chainId]}${opts.tokenId}/image.svg`,
+      image: `${config.apiBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
+      image_original: `${config.apiBaseURI[opts.chainId]}${
+        opts.tokenId
+      }/image.svg`,
       source_contract: opts.sourceContract,
       source_token_id: opts.sourceTokenId,
-      external_url: `${externalBaseURI[opts.chainId]}${opts.tokenId}`,
+      external_url: `${config.externalBaseURI[opts.chainId]}${opts.tokenId}`,
       description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.\n\n[Source Token](${sourceTokenLink})`,
     },
     null,
