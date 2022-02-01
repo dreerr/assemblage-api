@@ -32,8 +32,8 @@ app.use((req, res, next) => {
   return next()
 })
 
-app.use("/api/healthcheck", (req, res) => res.send("OK"))
+app.use("/api/healthcheck", (req, res) => res.send({status: "OK"}))
 app.use("/api", api)
-app.use("/*", (req, res) => res.send("Not Found"))
+app.use("/*", (req, res) => res.send({message: "Not Found"}))
 
 export default app
