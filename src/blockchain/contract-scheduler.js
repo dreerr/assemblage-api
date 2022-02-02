@@ -1,6 +1,6 @@
 import schedule from "node-schedule"
 import { logger } from "../utils/logger.js"
-import { activeChains, contractOnChain } from "./blockchain-utils.js"
+import { activeChains, contractOnChain } from "../utils/web3.js"
 import { processToken } from "./process-token.js"
 import { currentProcessCount } from "assemblage-algorithm"
 
@@ -12,7 +12,7 @@ export default async () => {
 }
 
 const checkMintedTokens = async () => {
-  if(currentProcessCount() > 0) {
+  if (currentProcessCount() > 0) {
     logger.info(`${currentProcessCount()} items in queue, will check later.`)
     return
   }

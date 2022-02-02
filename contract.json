@@ -1,0 +1,8 @@
+{
+  "name": "Assemblage",
+  "description": "Assemblage generates art based on NFTs in the Ethereum blockchain. The algorithm analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the blockchain. The source token is referenced in the metadata of the new token. Together they form a pair that always remains traceable.",
+  "image": "https://assemblage.ee/images/1.jpg",
+  "external_link": "https://assemblage.ee",
+  "seller_fee_basis_points": 770,
+  "fee_recipient": "0xF0cdC10aD3569a8A200013b0b977752c2fFa14c1"
+}

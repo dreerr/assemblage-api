@@ -5,7 +5,7 @@ import { logger } from "../utils/logger.js"
 import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { addToQueue } from "assemblage-algorithm"
 import { downloadToken } from "./download-token.js"
-import { metadata } from "./blockchain-utils.js"
+import metadata from "../utils/metadata.js"
 dotenv.config()
 
 export const processToken = async ({

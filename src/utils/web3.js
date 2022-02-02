@@ -1,6 +1,6 @@
 import { ethers } from "ethers"
 import { readFileSync, existsSync } from "fs"
-import { logger } from "../utils/logger.js"
+import { logger } from "./logger.js"
 import config from "../config.js"
 
 if (
@@ -57,27 +57,4 @@ export const openSeaAsset = (chainId, address, tokenId) => {
   const testnetPrefix = chainId === "mainnet" ? "" : chainId + "-"
   const url = `https://${testnetPrefix}api.opensea.io/api/v1/asset/${address}/${tokenId}/`
   return url
-}
-
-export const metadata = (opts) => {
-  const sourceTokenLink =
-    (opts.chainId !== "mainnet"
-      ? "https://testnets.opensea.io/"
-      : "https://opensea.io/") +
-    `assets/${opts.sourceContract}/${opts.sourceTokenId}`
-  return JSON.stringify(
-    {
-      name: `Assemblage #${opts.tokenId}`,
-      image: `${config.apiBaseURI[opts.chainId]}${opts.tokenId}/image.png`,
-      image_original: `${config.apiBaseURI[opts.chainId]}${
-        opts.tokenId
-      }/image.svg`,
-      source_contract: opts.sourceContract,
-      source_token_id: opts.sourceTokenId,
-      external_url: `${config.externalBaseURI[opts.chainId]}${opts.tokenId}`,
-      description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.\n\n[Source Token](${sourceTokenLink})`,
-    },
-    null,
-    2
-  )
 }

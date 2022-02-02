@@ -1,4 +1,4 @@
-import { activeChains, contractOnChain } from "./blockchain-utils.js"
+import { activeChains, contractOnChain } from "../utils/web3.js"
 import { processToken } from "./process-token.js"
 import { logger } from "../utils/logger.js"
 

@@ -1,7 +1,7 @@
 import pkg from "winston"
 import TelegramLogger from "winston-telegram"
 import config from "../config.js"
-const { createLogger, format, transports, exceptions, add } = pkg
+const { createLogger, format, transports, exceptions } = pkg
 
 export const logger = createLogger({
   format: format.combine(

@@ -9,7 +9,7 @@ import { ERC1155Metadata } from "multi-token-standard-abi"
 import dataUriToBuffer from "data-uri-to-buffer"
 import path from "path"
 import { logger } from "../utils/logger.js"
-import { providers, openSeaAsset } from "./blockchain-utils.js"
+import { providers, openSeaAsset } from "../utils/web3.js"
 import config from "../config.js"
 
 const ERC721 = JSON.parse(
