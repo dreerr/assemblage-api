@@ -24,30 +24,76 @@ Moralis.start(config.moralis)
 export const downloadToken = async (opts) => {
   let result
   try {
-    result = await getTokenMetadata(opts)
+    result = await getTokenMetadata({ ...opts, useLive: true })
     return await getTokenImage({ ...result, ...opts })
   } catch (error) {
-    if (result && result.live === false) {
-      logger.warn("Error downloading image, trying with live metadata")
-      const liveResult = await getTokenMetadata({ ...opts, useLive: true })
-      return await getTokenImage({ ...liveResult, ...opts }) // may throw
-    } else {
-      throw Error(`Error getting metadata or image (${error.code || error})`)
-    }
+    logger.debug("Trying cached metadata")
+    const cachedResult = await getTokenMetadata({ ...opts, useLive: false }) // may throw
+    if (cachedResult === undefined) throw new Error(`Not found live or cached`)
+    return await getTokenImage({ ...cachedResult, ...opts }) // may throw
   }
 }
 
 const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
   logger.info(
-    `Getting ${address} / ${tokenId} on ${chainId}, live: ${
+    `${address} / ${tokenId} downloading on ${chainId}, live: ${
       useLive ? "yes" : "no"
     }`
   )
-  if (!useLive && chainId !== "localhost") {
-    // 1. TRY OPENSEA
+  if (useLive) {
+    // TRY ERC721
+    let tokenURI
+    const contract = new ethers.Contract(address, ERC721, providers[chainId])
+    try {
+      tokenURI = await contract.tokenURI(tokenId)
+    } catch (error) {
+      logger.warn(`${address} / ${tokenId} is not ERC721`)
+    }
+
+    // TRY ERC1155
+    if (!tokenURI) {
+      const contract = new ethers.Contract(
+        address,
+        ERC1155Metadata.abi,
+        providers[chainId]
+      )
+      try {
+        tokenURI = await contract.uri(tokenId)
+        tokenURI = tokenURI.replace("{id}", String(tokenId).padStart(64, "0"))
+      } catch (error) {
+        logger.warn(`${address} / ${tokenId} is not ERC1155`)
+        throw Error("Not ERC721 or ERC1155")
+      }
+    }
+
+    // GET METADATA FOR ERC721 OR ERCC1155
+    let metadata
+    if (tokenURI.startsWith("data")) {
+      logger.debug(`Token is dataURI encoded`)
+      const data = dataUriToBuffer(tokenURI).toString()
+      try {
+        const metadata = JSON.parse(data)
+        return { metadata, live: true }
+      } catch (error) {
+        logger.warn(
+          `${address} / ${tokenId} dataURI could not be decoded, maybe image`
+        )
+        return { metadata: { image_data: data }, live: true }
+      }
+    } else {
+      tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, config.ipfsGateway)
+      logger.debug(`Getting token metadata at ${tokenURI}`)
+      metadata = await got(tokenURI, gotOptions).json()
+    }
+    logger.debug(`Found metadata with live data`)
+    return { metadata, live: true }
+  } else if (chainId !== "localhost") {
+    // CACHED AND NOT ON LOCALHOST
+
+    // TRY OPENSEA
     try {
       const metadata = await got(openSeaAsset(chainId, address, tokenId)).json()
-      if (metadata.image_original_url) {
+      if (metadata.image_original_url || metadata.image_url || metadata.image) {
         logger.debug(`Found metadata with OpenSea`)
         return { metadata, live: false }
       }
@@ -55,7 +101,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       logger.warn(`${address} / ${tokenId} not found on OpenSea`)
     }
 
-    // 2.  TRY MORALIS
+    // TRY MORALIS
     const options = { address, token_id: tokenId, chain: chainId }
     try {
       const tokenData = await Moralis.Web3API.token.getTokenIdMetadata(options)
@@ -70,53 +116,6 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       logger.warn(`${address} / ${tokenId} not found on Moralis`)
     }
   }
-
-  // 3. TRY ERC721 MANUAL
-  let tokenURI
-  const contract = new ethers.Contract(address, ERC721, providers[chainId])
-  try {
-    tokenURI = await contract.tokenURI(tokenId)
-  } catch (error) {
-    logger.warn("No ERC721, trying different")
-  }
-
-  // 4. TRY ERC1155
-  if (!tokenURI) {
-    const contract = new ethers.Contract(
-      address,
-      ERC1155Metadata.abi,
-      providers[chainId]
-    )
-    try {
-      tokenURI = await contract.uri(tokenId)
-      tokenURI = tokenURI.replace("{id}", String(tokenId).padStart(64, "0"))
-    } catch (error) {
-      logger.error(`${address} / ${tokenId} has no valid format, do manually!`)
-      throw Error("No valid token format!")
-    }
-  }
-
-  // 5. GET METADATA FOR ERC721 OR ERCC1155
-  let metadata
-  if (tokenURI.startsWith("data")) {
-    logger.debug(`Token is dataURI encoded`)
-    const data = dataUriToBuffer(tokenURI).toString()
-    try {
-      const metadata = JSON.parse(data)
-      return { metadata, live: true }
-    } catch (error) {
-      logger.warn(
-        `${address} / ${tokenId} dataURI could not be decoded, maybe image`
-      )
-      return { metadata: { image_data: data }, live: true }
-    }
-  } else {
-    tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, config.ipfsGateway)
-    logger.debug(`Getting token metadata at ${tokenURI}`)
-    metadata = await got(tokenURI, gotOptions).json()
-  }
-  logger.debug(`Found metadata manually`)
-  return { metadata, live: true }
 }
 
 const imageField = (metadata) =>
