@@ -68,8 +68,13 @@ export const processToken = async ({
     const backgroundColor = sourceToken.metadata.background_color
       ? "#" + sourceToken.metadata.background_color
       : undefined
-    return await addToQueue(sourceToken.filePath, destinationImage, {
-      backgroundColor,
-    })
+    try {
+      await addToQueue(sourceToken.filePath, destinationImage, {
+        backgroundColor,
+      })
+      logger.info(`Finished Assemblage for ${tokenInfo}`)
+    } catch (error) {
+      logger.error(`Fatal error with  ${tokenInfo}: ${error}`)
+    }
   }
 }
