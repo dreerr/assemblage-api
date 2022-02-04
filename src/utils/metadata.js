@@ -21,7 +21,8 @@ export default (opts) => {
       external_url,
       description: `Assemblage analyzes the visual features of a token, deconstructs its aesthetics and assembles it into a newly-created piece in the Ethereum blockchain.
 
-[Source Token](${sourceTokenLink}) \
+[Source Token](${sourceTokenLink})
+
 [View side by side](${image_comparison})`,
     },
     null,
