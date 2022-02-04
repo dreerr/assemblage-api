@@ -92,12 +92,15 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
 
     // TRY OPENSEA
     try {
-      const metadata = await got(openSeaAsset(chainId, address, tokenId)).json()
+      const metadata = (
+        await got(openSeaAsset(chainId, address, tokenId))
+      ).json()
       if (metadata.image_original_url || metadata.image_url || metadata.image) {
         logger.debug(`Found metadata with OpenSea`)
         return { metadata, live: false }
       }
     } catch (error) {
+      logger.debug(error)
       logger.warn(`${address} / ${tokenId} not found on OpenSea`)
     }
 

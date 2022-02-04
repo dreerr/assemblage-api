@@ -16,7 +16,11 @@ export const processToken = async ({
   ...opts
 }) => {
   const workingDir = path.resolve(
-    path.join(config.workingDir, chainId.toString(), tokenId.toString())
+    path.join(
+      config.workingDir,
+      chainId.toString() + "-preview",
+      tokenId.toString()
+    )
   )
   const tokenInfo = `${sourceContract} / ${sourceTokenId} on ${chainId}`
   logger.debug(`Checking ${tokenInfo}`)
