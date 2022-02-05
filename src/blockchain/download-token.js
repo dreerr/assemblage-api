@@ -68,7 +68,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
 
     // GET METADATA FOR ERC721 OR ERCC1155
     let metadata
-    if (tokenURI.startsWith("data")) {
+    if (tokenURI.startsWith("data:")) {
       logger.debug(`Token is dataURI encoded`)
       const data = dataUriToBuffer(tokenURI).toString()
       try {
@@ -132,7 +132,8 @@ const getTokenImage = async ({ metadata, workingDir }) => {
     /^ipfs:\/\/(ipfs\/)*/,
     config.ipfsGateway
   )
-  if(imageUrl.includes("googleusercontent.com") && !imageUrl.includes("=")) {
+  if (imageUrl.includes("googleusercontent.com") && !imageUrl.includes("=")) {
+    logger.warn("Image is hosted on googleusercontent.com, appending query")
     imageUrl += "=s0"
   }
   let filePath = path.join(workingDir, "source")
@@ -142,8 +143,14 @@ const getTokenImage = async ({ metadata, workingDir }) => {
     fs.writeFileSync(filePath, imageUrl)
   } else if (imageUrl.startsWith("http")) {
     filePath = await downloadImage({ imageUrl, filePath })
+  } else if (imageUrl.startsWith("data:")) {
+    logger.debug(`Image is dataURI encoded`)
+    const data = dataUriToBuffer(imageUrl)
+    const fileType = mime.extension(data.type)
+    filePath += "." + fileType.ext
+    fs.writeFileSync(filePath, data)
   } else {
-    throw Error("Could not determine image URL type!")
+    throw Error("Could not determine image URL type! " + imageUrl)
   }
   return { filePath, metadata }
 }

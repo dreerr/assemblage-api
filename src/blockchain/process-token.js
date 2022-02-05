@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { addToQueue } from "assemblage-algorithm"
 import { downloadToken } from "./download-token.js"
 import metadata from "../utils/metadata.js"
+import glob from "glob"
 dotenv.config()
 
 export const processToken = async ({
@@ -23,9 +24,10 @@ export const processToken = async ({
     )
   )
   const tokenInfo = `${sourceContract} / ${sourceTokenId} on ${chainId}`
-  logger.debug(`Checking ${tokenInfo}`)
   const destinationData = path.join(workingDir, "data.json")
   const destinationImage = path.join(workingDir, "image.svg")
+  let existingSourceToken = glob.sync(path.join(workingDir, "source.*"))
+  existingSourceToken = existingSourceToken[0] || undefined
   if (!existsSync(workingDir)) {
     logger.debug(`Creating directory ${workingDir}`)
     mkdirSync(workingDir, { recursive: true })
@@ -44,26 +46,32 @@ export const processToken = async ({
     )
   }
 
+  // 2. GET SOURCE IMAGE
+  let sourceToken
+  if (!existsSync(existingSourceToken)) {
+    logger.info(`Getting source image for ${tokenInfo}`)
+    try {
+      sourceToken = await downloadToken({
+        address: sourceContract,
+        tokenId: sourceTokenId,
+        chainId,
+        workingDir,
+      })
+    } catch (error) {
+      logger.error(
+        `Token #${tokenId} (${sourceContract} / ${sourceTokenId} ` +
+          `on ${chainId}) could not download – ${error}`
+      )
+      return
+    }
+  } else {
+    logger.debug(`Source exists ${existingSourceToken}`)
+    sourceToken = { filePath: existingSourceToken, metadata: {} }
+  }
+
   if (existsSync(destinationImage) && opts.overwrite !== true) {
     logger.debug(`Already exists ${destinationImage}`)
     return destinationImage
-  }
-  // 2. GET SOURCE IMAGE
-  logger.info(`Getting source image for ${tokenInfo}`)
-  let sourceToken
-  try {
-    sourceToken = await downloadToken({
-      address: sourceContract,
-      tokenId: sourceTokenId,
-      chainId,
-      workingDir,
-    })
-  } catch (error) {
-    logger.error(
-      `Token #${tokenId} (${sourceContract} / ${sourceTokenId} ` +
-        `on ${chainId}) could not download – ${error}`
-    )
-    return
   }
 
   // 3. MAKE ASSEMBLAGE
@@ -78,7 +86,7 @@ export const processToken = async ({
       })
       logger.info(`Finished Assemblage for ${tokenInfo}`)
     } catch (error) {
-      logger.error(`Fatal error with  ${tokenInfo}: ${error}`)
+      logger.error(`Error with  ${tokenInfo}: ${error}`)
     }
   }
 }
