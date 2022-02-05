@@ -29,7 +29,8 @@ export const downloadToken = async (opts) => {
   } catch (error) {
     logger.debug("Trying cached metadata")
     const cachedResult = await getTokenMetadata({ ...opts, useLive: false }) // may throw
-    if (cachedResult === undefined) throw new Error(`Not found live or cached`)
+    if (cachedResult === undefined)
+      throw new Error(`Not found live or cached ${error}`)
     return await getTokenImage({ ...cachedResult, ...opts }) // may throw
   }
 }
@@ -146,8 +147,7 @@ const getTokenImage = async ({ metadata, workingDir }) => {
   } else if (imageUrl.startsWith("data:")) {
     logger.debug(`Image is dataURI encoded`)
     const data = dataUriToBuffer(imageUrl)
-    const fileType = mime.extension(data.type)
-    filePath += "." + fileType.ext
+    filePath += "." + mime.extension(data.type)
     fs.writeFileSync(filePath, data)
   } else {
     throw Error("Could not determine image URL type! " + imageUrl)

@@ -21,7 +21,6 @@
   "dependencies": {
     "@nibbstack/erc721": "^2.6.1",
     "@sendgrid/mail": "^7.6.0",
-    "api": "^4.2.0",
     "assemblage-algorithm": "file:../assemblage-algorithm",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -44,7 +43,6 @@
     "multi-token-standard-abi": "^1.0.4",
     "node-schedule": "^2.1.0",
     "request-ip": "^2.1.3",
-    "twilio": "^3.73.1",
     "uuid": "^8.3.2",
     "winston-telegram": "^2.5.0"
   },
