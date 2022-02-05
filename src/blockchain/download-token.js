@@ -128,10 +128,13 @@ const imageField = (metadata) =>
   metadata.image_data
 
 const getTokenImage = async ({ metadata, workingDir }) => {
-  const imageUrl = imageField(metadata).replace(
+  let imageUrl = imageField(metadata).replace(
     /^ipfs:\/\/(ipfs\/)*/,
     config.ipfsGateway
   )
+  if(imageUrl.includes("googleusercontent.com") && !imageUrl.includes("=")) {
+    imageUrl += "=s0"
+  }
   let filePath = path.join(workingDir, "source")
   if (imageUrl.startsWith("<svg")) {
     logger.debug(`Image is SVG`)
