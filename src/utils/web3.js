@@ -22,8 +22,8 @@ const chainNums = {
 }
 
 export const providers = {
-  mainnet: new ethers.providers.JsonRpcProvider(config.node.mainnet),
-  rinkeby: new ethers.providers.JsonRpcProvider(config.node.rinkeby),
+  mainnet: new ethers.providers.WebSocketProvider(config.node.mainnet),
+  rinkeby: new ethers.providers.WebSocketProvider(config.node.rinkeby),
   localhost: new ethers.providers.JsonRpcProvider(config.node.localhost),
 }
 
