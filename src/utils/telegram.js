@@ -17,10 +17,10 @@ const liveDir = path.join(config.workingDir, "mainnet")
 const bot = new TelegramBot(config.telegram.token, { polling: true })
 
 export const telegramAdmin = async () => {
-  bot.onText(/\/see (\d+)/, see)
-  bot.onText(/\/source (\d+) (.+)/, source)
-  bot.onText(/\/allow (\d+)/, allow)
-  bot.onText(/\/help/, (msg) => {
+  bot.onText(/^\/see (\d+)/, see)
+  bot.onText(/^\/source (\d+) (.+)/, source)
+  bot.onText(/^\/allow (\d+)/, allow)
+  bot.onText(/^\/help/, (msg) => {
     const chatId = msg.chat.id
     bot.sendMessage(
       chatId,
