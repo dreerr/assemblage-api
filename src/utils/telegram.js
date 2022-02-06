@@ -6,6 +6,7 @@ import glob from "glob"
 import { downloadImage } from "../blockchain/download-token.js"
 import { copySync } from "fs-extra"
 import { checkMintedTokens } from "../blockchain/contract-scheduler.js"
+import { logger } from "./logger.js"
 
 process.env.NTBA_FIX_350 = true
 
@@ -35,11 +36,9 @@ export const telegramAdmin = async () => {
 const see = (msg, match) => {
   if (!canAccess(msg)) return
   const photoId = match[1]
-  console.log(photoId)
   const photo = path.resolve(
     path.join(previewDir, photoId.toString(), "image_comparison.png")
   )
-  console.log(photo)
   if (!existsSync(photo)) {
     bot.sendMessage(chatId, "Does not exist")
     return
@@ -49,7 +48,6 @@ const see = (msg, match) => {
 
 const source = async (msg, match) => {
   if (!canAccess(msg)) return
-  console.log(match)
   const tokenId = match[1]
   const imageUrl = match[2]
 
@@ -100,7 +98,7 @@ const allow = (msg, match) => {
       bot.sendMessage(chatId, `Error during copying ${error}`)
     }
   } catch (error) {
-    console.log(error)
+    logger.error(`Error while telegram allow ${error}`)
   }
 }
 
