@@ -3,6 +3,7 @@ import express from "express"
 import { logMint, logOrder } from "./utils/csv.js"
 import { logger } from "./utils/logger.js"
 import mailServices from "./utils/mail-services.js"
+import { checkMintedTokens } from "./blockchain/contract-scheduler.js"
 
 const router = express.Router()
 
@@ -21,6 +22,9 @@ router.post("/mint", function (req, res) {
   logMint(data)
   logger.info(`New mint ${JSON.stringify(data)}`)
   res.send({ status: "ok" })
+  setTimeout(() => {
+    checkMintedTokens()
+  }, 60_000)
 })
 
 router.post("/order", function (req, res) {

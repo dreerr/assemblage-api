@@ -4,6 +4,8 @@ import { activeChains, contractOnChain } from "../utils/web3.js"
 import { processToken } from "./process-token.js"
 import { currentProcessCount } from "assemblage-algorithm"
 
+let checking = false
+
 export default async () => {
   checkMintedTokens()
   const rule = new schedule.RecurrenceRule()
@@ -12,10 +14,15 @@ export default async () => {
 }
 
 export const checkMintedTokens = async () => {
+  if (checking) {
+    logger.info(`checkMintedTokens is running`)
+    return
+  }
   if (currentProcessCount() > 0) {
     logger.info(`${currentProcessCount()} items in queue, will check later.`)
     return
   }
+  checking = true
   activeChains().forEach(async (chainId) => {
     const contract = contractOnChain(chainId)
     let totalSupply = 0
@@ -39,4 +46,5 @@ export const checkMintedTokens = async () => {
     }
     logger.debug(`Done checking ${totalSupply} tokens on ${chainId}`)
   })
+  checking = false
 }

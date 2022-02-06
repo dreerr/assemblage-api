@@ -103,11 +103,19 @@ const allow = (msg, match) => {
 }
 
 export const sendPhoto = (filePath, message) => {
-  bot.sendPhoto(chatId, filePath, { caption: message })
+  try {
+    bot.sendPhoto(chatId, filePath, { caption: message })
+  } catch (error) {
+    logger.error(`Error while sendPhoto ${error}`)
+  }
 }
 
 export const sendText = (message) => {
-  bot.sendMessage(chatId, message)
+  try {
+    bot.sendMessage(chatId, message)
+  } catch (error) {
+    logger.error(`Error while sendMessage ${error}`)
+  }
 }
 
 const canAccess = (msg) => {
