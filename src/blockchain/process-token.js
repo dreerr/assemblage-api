@@ -7,6 +7,7 @@ import { addToQueue } from "assemblage-algorithm"
 import { downloadToken } from "./download-token.js"
 import metadata from "../utils/metadata.js"
 import glob from "glob"
+import { sendPhoto, sendText } from "../utils/telegram.js"
 dotenv.config()
 
 export const processToken = async ({
@@ -26,15 +27,16 @@ export const processToken = async ({
   const tokenInfo = `${sourceContract} / ${sourceTokenId} on ${chainId}`
   const destinationData = path.join(workingDir, "data.json")
   const destinationImage = path.join(workingDir, "image.svg")
+  const comparisonImage = path.join(workingDir, "image_comparison.png")
   let existingSourceToken = glob.sync(path.join(workingDir, "source.*"))
   existingSourceToken = existingSourceToken[0] || undefined
   if (!existsSync(workingDir)) {
-    logger.debug(`Creating directory ${workingDir}`)
+    logger.debug(`#${tokenId}: Creating directory ${workingDir}`)
     mkdirSync(workingDir, { recursive: true })
   }
   // TODO 1. WRITE METADATA
   if (!existsSync(destinationData) || opts.overwrite) {
-    logger.debug(`Writing metadata ${destinationData}`)
+    logger.debug(`#${tokenId}: Writing metadata ${destinationData}`)
     writeFileSync(
       destinationData,
       metadata({
@@ -49,7 +51,7 @@ export const processToken = async ({
   // 2. GET SOURCE IMAGE
   let sourceToken
   if (!existsSync(existingSourceToken)) {
-    logger.info(`Getting source image for ${tokenInfo}`)
+    logger.info(`#${tokenId}: Getting source image for ${tokenInfo}`)
     try {
       sourceToken = await downloadToken({
         address: sourceContract,
@@ -58,25 +60,26 @@ export const processToken = async ({
         workingDir,
       })
     } catch (error) {
-      logger.error(
-        `Token #${tokenId} (${sourceContract} / ${sourceTokenId} ` +
-          `on ${chainId}) could not download – ${error}`
-      )
+      processError({
+        tokenId,
+        sourceContract,
+        sourceTokenId,
+        chainId,
+        error,
+      })
       return
     }
   } else {
-    logger.debug(`Source exists ${existingSourceToken}`)
     sourceToken = { filePath: existingSourceToken, metadata: {} }
   }
 
   if (existsSync(destinationImage) && opts.overwrite !== true) {
-    logger.debug(`Already exists ${destinationImage}`)
     return destinationImage
   }
 
   // 3. MAKE ASSEMBLAGE
   if (sourceToken && existsSync(sourceToken.filePath)) {
-    logger.info(`Making Assemblage for ${tokenInfo}`)
+    logger.info(`#${tokenId}: Making Assemblage for ${tokenInfo}`)
     const backgroundColor = sourceToken.metadata.background_color
       ? "#" + sourceToken.metadata.background_color
       : undefined
@@ -84,9 +87,31 @@ export const processToken = async ({
       await addToQueue(sourceToken.filePath, destinationImage, {
         backgroundColor,
       })
-      logger.info(`Finished Assemblage for ${tokenInfo}`)
+      logger.info(`#${tokenId}: Finished Assemblage for ${tokenInfo}`)
+      sendPhoto(comparisonImage, `New Assemblage #${tokenId}`)
     } catch (error) {
-      logger.error(`Error with  ${tokenInfo}: ${error}`)
+      processError({
+        tokenId,
+        sourceContract,
+        sourceTokenId,
+        chainId,
+        error,
+      })
     }
   }
+}
+
+const processError = (opts) => {
+  logger.error(
+    `#${opts.tokenId}: (${opts.sourceContract} / ${opts.sourceTokenId} ` +
+      `on ${opts.chainId}) could not download – ${opts.error}`
+  )
+  const sourceTokenLink =
+    (opts.chainId !== "mainnet"
+      ? "https://testnets.opensea.io/"
+      : "https://opensea.io/") +
+    `assets/${opts.sourceContract}/${opts.sourceTokenId}`
+  sendText(
+    `🚨 Assemblage #${opts.tokenId}\nSource: ${sourceTokenLink}\n${opts.error}`
+  )
 }
