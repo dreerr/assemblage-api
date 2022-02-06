@@ -27,19 +27,17 @@ export const downloadToken = async (opts) => {
     result = await getTokenMetadata({ ...opts, useLive: true })
     return await getTokenImage({ ...result, ...opts })
   } catch (error) {
-    logger.debug("Trying cached metadata")
+    logger.debug(`#${opts.id}: Failed live, trying cached metadata ${error}`)
     const cachedResult = await getTokenMetadata({ ...opts, useLive: false }) // may throw
     if (cachedResult === undefined)
-      throw new Error(`Not found live or cached ${error}`)
+      throw new Error(`#${opts.id}: Not found live or cached ${error}`)
     return await getTokenImage({ ...cachedResult, ...opts }) // may throw
   }
 }
 
-const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
+const getTokenMetadata = async ({ address, tokenId, useLive, chainId, id }) => {
   logger.info(
-    `${address} / ${tokenId} downloading on ${chainId}, live: ${
-      useLive ? "yes" : "no"
-    }`
+    `#${id}: downloading on ${chainId}, live: ${useLive ? "yes" : "no"}`
   )
   if (useLive) {
     // TRY ERC721
@@ -48,7 +46,7 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
     try {
       tokenURI = await contract.tokenURI(tokenId)
     } catch (error) {
-      logger.warn(`${address} / ${tokenId} is not ERC721`)
+      logger.warn(`#${id}: Is not ERC721`)
     }
 
     // TRY ERC1155
@@ -60,9 +58,13 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       )
       try {
         tokenURI = await contract.uri(tokenId)
+        if (tokenURI.startsWith("https://api.opensea.io/")) {
+          tokenURI = tokenURI.replace("/0x{id}", "/{id}")
+          logger.warn(`#${id}: Correcting OpenSea ERC1155 URL bug`)
+        }
         tokenURI = tokenURI.replace("{id}", String(tokenId).padStart(64, "0"))
       } catch (error) {
-        logger.warn(`${address} / ${tokenId} is not ERC1155`)
+        logger.warn(`#${id}: is not ERC1155`)
         throw Error("Not ERC721 or ERC1155")
       }
     }
@@ -70,23 +72,21 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
     // GET METADATA FOR ERC721 OR ERCC1155
     let metadata
     if (tokenURI.startsWith("data:")) {
-      logger.debug(`Token is dataURI encoded`)
+      logger.debug(`#${id}: Token is dataURI encoded`)
       const data = dataUriToBuffer(tokenURI).toString()
       try {
         const metadata = JSON.parse(data)
         return { metadata, live: true }
       } catch (error) {
-        logger.warn(
-          `${address} / ${tokenId} dataURI could not be decoded, maybe image`
-        )
+        logger.warn(`#${id}: dataURI could not be decoded, maybe image`)
         return { metadata: { image_data: data }, live: true }
       }
     } else {
       tokenURI = tokenURI.replace(/^ipfs:\/\/(ipfs\/)*/, config.ipfsGateway)
-      logger.debug(`Getting token metadata at ${tokenURI}`)
+      logger.debug(`#${id}: Getting token metadata at ${tokenURI}`)
       metadata = await got(tokenURI, gotOptions).json()
     }
-    logger.debug(`Found metadata with live data`)
+    logger.debug(`#${id}: Found metadata with live data`)
     return { metadata, live: true }
   } else if (chainId !== "localhost") {
     // CACHED AND NOT ON LOCALHOST
@@ -97,12 +97,11 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
         await got(openSeaAsset(chainId, address, tokenId))
       ).json()
       if (metadata.image_original_url || metadata.image_url || metadata.image) {
-        logger.debug(`Found metadata with OpenSea`)
+        logger.debug(`#${id}: Found metadata with OpenSea`)
         return { metadata, live: false }
       }
     } catch (error) {
-      logger.debug(error)
-      logger.warn(`${address} / ${tokenId} not found on OpenSea`)
+      logger.warn(`#${id}: not found on OpenSea`)
     }
 
     // TRY MORALIS
@@ -112,12 +111,12 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId }) => {
       if (tokenData.metadata) {
         const metadata = JSON.parse(tokenData.metadata)
         if (imageField(metadata)) {
-          logger.debug(`Found metadata on Moralis`)
+          logger.debug(`#${id}: Found metadata on Moralis`)
           return { metadata, live: false }
         }
       }
     } catch (error) {
-      logger.warn(`${address} / ${tokenId} not found on Moralis`)
+      logger.warn(`#${id}: Not found on Moralis`)
     }
   }
 }
@@ -128,24 +127,26 @@ const imageField = (metadata) =>
   metadata.image_url ||
   metadata.image_data
 
-const getTokenImage = async ({ metadata, workingDir }) => {
+const getTokenImage = async ({ metadata, workingDir, id }) => {
   let imageUrl = imageField(metadata).replace(
     /^ipfs:\/\/(ipfs\/)*/,
     config.ipfsGateway
   )
   if (imageUrl.includes("googleusercontent.com") && !imageUrl.includes("=")) {
-    logger.warn("Image is hosted on googleusercontent.com, appending query")
+    logger.warn(
+      `#${id}: Image is hosted on googleusercontent.com, appending query`
+    )
     imageUrl += "=s0"
   }
   let filePath = path.join(workingDir, "source")
   if (imageUrl.startsWith("<svg")) {
-    logger.debug(`Image is SVG`)
+    logger.debug(`#${id}: Image is SVG`)
     filePath += ".svg"
     fs.writeFileSync(filePath, imageUrl)
   } else if (imageUrl.startsWith("http")) {
     filePath = await downloadImage({ imageUrl, filePath })
   } else if (imageUrl.startsWith("data:")) {
-    logger.debug(`Image is dataURI encoded`)
+    logger.debug(`#${id}: Image is dataURI encoded`)
     const data = dataUriToBuffer(imageUrl)
     filePath += "." + mime.extension(data.type)
     fs.writeFileSync(filePath, data)
@@ -174,6 +175,5 @@ export const downloadImage = async ({ imageUrl, filePath }) => {
     got.stream.get(imageUrl, gotOptions),
     fs.createWriteStream(filePathWithExt)
   )
-  logger.debug(`sucessfully wrote image`)
   return filePathWithExt
 }

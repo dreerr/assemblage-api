@@ -1,5 +1,6 @@
 import pkg from "winston"
 const { createLogger, format, transports, exceptions } = pkg
+const logLevel = process.env.NODE_ENV === "production" ? "info" : "debug"
 
 export const logger = createLogger({
   format: format.combine(
@@ -8,7 +9,7 @@ export const logger = createLogger({
   ),
   transports: [
     new transports.Console({
-      level: "debug",
+      level: logLevel,
       format: format.combine(
         format.colorize(),
         format.printf(
@@ -19,7 +20,7 @@ export const logger = createLogger({
     }),
     new transports.File({
       filename: "./log/combined.log",
-      level: "info",
+      level: "debug",
     }),
     new transports.File({
       filename: "./log/errors.log",

@@ -119,6 +119,7 @@ export const sendText = (message) => {
 }
 
 const canAccess = (msg) => {
-  if(msg.chat.id !== chatId) logger.warn(`Chat ID ${msg.chat.id} not recognized`)
+  if (msg.chat.id !== chatId)
+    logger.warn(`Chat ID ${msg.chat.id} not recognized`)
   return msg.chat.id === chatId
 }

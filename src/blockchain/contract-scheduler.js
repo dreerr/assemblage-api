@@ -32,7 +32,7 @@ export const checkMintedTokens = async () => {
       logger.error(`Could not get 'contract.totalSupply()' on ${chainId}`)
       return
     }
-    logger.debug(`Checking ${totalSupply} tokens on ${chainId}`)
+    logger.info(`Checking ${totalSupply} tokens on ${chainId}`)
     for (let index = 0; index < totalSupply; index++) {
       const source = await contract.sourceTokens(index)
       const opts = {

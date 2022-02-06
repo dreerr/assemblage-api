@@ -24,7 +24,10 @@ export const processToken = async ({
       tokenId.toString()
     )
   )
-  const tokenInfo = `${sourceContract} / ${sourceTokenId} on ${chainId}`
+  const tokenInfo = `${sourceContract} / ${sourceTokenId.substr(
+    0,
+    5
+  )} on ${chainId}`
   const destinationData = path.join(workingDir, "data.json")
   const destinationImage = path.join(workingDir, "image.svg")
   const comparisonImage = path.join(workingDir, "image_comparison.png")
@@ -58,6 +61,7 @@ export const processToken = async ({
         tokenId: sourceTokenId,
         chainId,
         workingDir,
+        id: tokenId,
       })
     } catch (error) {
       processError({
