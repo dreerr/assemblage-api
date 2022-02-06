@@ -150,12 +150,12 @@ const getTokenImage = async ({ metadata, workingDir }) => {
     filePath += "." + mime.extension(data.type)
     fs.writeFileSync(filePath, data)
   } else {
-    throw Error("Could not determine image URL type! " + imageUrl)
+    throw Error("Could not determine image URL type! " + imageUrl.slice(0, 10))
   }
   return { filePath, metadata }
 }
 
-const downloadImage = async ({ imageUrl, filePath }) => {
+export const downloadImage = async ({ imageUrl, filePath }) => {
   logger.debug(`Probing image at ${imageUrl}`)
   const head = await got(imageUrl, {
     headers: {

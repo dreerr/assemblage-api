@@ -11,7 +11,7 @@ export default async () => {
   schedule.scheduleJob(rule, checkMintedTokens)
 }
 
-const checkMintedTokens = async () => {
+export const checkMintedTokens = async () => {
   if (currentProcessCount() > 0) {
     logger.info(`${currentProcessCount()} items in queue, will check later.`)
     return
@@ -25,6 +25,7 @@ const checkMintedTokens = async () => {
       logger.error(`Could not get 'contract.totalSupply()' on ${chainId}`)
       return
     }
+    logger.debug(`Checking ${totalSupply} tokens on ${chainId}`)
     for (let index = 0; index < totalSupply; index++) {
       const source = await contract.sourceTokens(index)
       const opts = {
@@ -36,5 +37,6 @@ const checkMintedTokens = async () => {
       }
       processToken(opts)
     }
+    logger.debug(`Done checking ${totalSupply} tokens on ${chainId}`)
   })
 }

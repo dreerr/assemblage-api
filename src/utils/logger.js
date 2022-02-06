@@ -1,6 +1,4 @@
 import pkg from "winston"
-import TelegramLogger from "winston-telegram"
-import config from "../config.js"
 const { createLogger, format, transports, exceptions } = pkg
 
 export const logger = createLogger({
@@ -33,20 +31,3 @@ export const logger = createLogger({
   ],
 })
 exceptions.handle(new transports.File({ filename: "./log/exceptions.log" }))
-
-if (config.telegram.active) {
-  logger.add(
-    new TelegramLogger({
-      token: config.telegram.token,
-      chatId: config.telegram.chatId,
-      level: "error",
-      formatMessage: function (options) {
-        let message = options.message
-        if (options.level === "error") {
-          message = "🛑 " + message
-        }
-        return message
-      },
-    })
-  )
-}
