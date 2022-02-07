@@ -3,6 +3,7 @@ import { logger } from "../utils/logger.js"
 import { activeChains, contractOnChain } from "../utils/web3.js"
 import { processToken } from "./process-token.js"
 import { currentProcessCount } from "assemblage-algorithm"
+import fs from 'fs';
 
 export default async () => {
   checkMintedTokens()
@@ -25,6 +26,7 @@ export const checkMintedTokens = async () => {
       logger.error(`Could not get 'contract.totalSupply()' on ${chainId}`)
       return
     }
+    writeTotalSupply(totalSupply)
     logger.info(`Checking ${totalSupply} tokens on ${chainId}`)
     for (let index = 0; index < totalSupply; index++) {
       const source = await contract.sourceTokens(index)
@@ -39,4 +41,21 @@ export const checkMintedTokens = async () => {
     }
     logger.debug(`Done checking ${totalSupply} tokens on ${chainId}`)
   })
+}
+
+const writeTotalSupply = (totalSupply) => {
+  const filePath = 'data/status.json'
+  let info = {}
+  try {
+    info = JSON.parse(fs.readFileSync(filePath))
+  } catch (error) {
+    logger.warn("Could not read status file")
+  }
+  info.count = parseInt(totalSupply)
+  const data = JSON.stringify(info);
+  try {
+    fs.writeFileSync(filePath, data);
+  } catch (error) {
+    logger.warn("Could not write status file")
+  }
 }
