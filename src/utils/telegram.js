@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from "fs"
+import { existsSync, mkdirSync, unlinkSync } from "fs"
 import path from "path"
 import TelegramBot from "node-telegram-bot-api"
 import config from "../config.js"
@@ -18,7 +18,7 @@ const bot = new TelegramBot(config.telegram.token, { polling: true })
 
 export const telegramAdmin = async () => {
   bot.onText(/^\/see (\d+)/, see)
-  bot.onText(/^\/source (\d+) (.+)/, source)
+  bot.onText(/^\/source (\d+) ([^\s]+)\s*(.*)$/, source)
   bot.onText(/^\/allow (\d+)/, allow)
   bot.onText(/^\/help/, (msg) => {
     const chatId = msg.chat.id
@@ -50,23 +50,25 @@ const source = async (msg, match) => {
   if (!canAccess(msg)) return
   const tokenId = match[1]
   const imageUrl = match[2]
-
-  const existingSourceToken = glob.sync(
-    path.join(previewDir, tokenId, "source.*")
-  )
+  const overwrite = Boolean(match[3])
+  const tokenDir = path.join(liveDir, tokenId)
+  const existingSourceToken = glob.sync(path.join(tokenDir, "source.*"))
   if (existingSourceToken.length > 0) {
-    bot.sendMessage(chatId, `${existingSourceToken[0]} already exists!`)
-    return
+    if (overwrite) {
+      existingSourceToken.forEach((el) => unlinkSync(el))
+    } else {
+      bot.sendMessage(chatId, `${existingSourceToken[0]} already exists!`)
+      return
+    }
   }
 
-  const tokenDir = path.join(previewDir, tokenId)
   mkdirSync(tokenDir, { recursive: true })
 
   let sourceFile
   try {
     sourceFile = await downloadImage({
       imageUrl,
-      filePath: path.join(previewDir, tokenId, "source"),
+      filePath: path.join(tokenDir, "source"),
     })
   } catch (error) {
     bot.sendMessage(chatId, `could not download!`)

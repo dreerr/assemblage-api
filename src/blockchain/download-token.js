@@ -165,15 +165,20 @@ export const downloadImage = async ({ imageUrl, filePath }) => {
     ...gotOptions,
   })
   const type = head.headers["content-type"]
-  const contentType = mime.contentType(type)
+  let contentType = mime.contentType(type)
   if (!contentType.startsWith("image/")) {
     throw Error(`${contentType} is not an image`)
   }
-
+  contentType = contentType.replace("image/jpg", "image/jpeg")
   const filePathWithExt = `${filePath}.${mime.extension(contentType)}`
-  await pipeline(
-    got.stream.get(imageUrl, gotOptions),
-    fs.createWriteStream(filePathWithExt)
-  )
+  try {
+    await pipeline(
+      got.stream.get(imageUrl, gotOptions),
+      fs.createWriteStream(filePathWithExt)
+    )
+  } catch (error) {
+    fs.unlinkSync(filePathWithExt)
+    throw Error(`Could not download image ${error}`)
+  }
   return filePathWithExt
 }

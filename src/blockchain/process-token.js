@@ -10,6 +10,8 @@ import glob from "glob"
 import { sendPhoto, sendText } from "../utils/telegram.js"
 dotenv.config()
 
+global.processing = global.processing || {}
+
 export const processToken = async ({
   sourceContract,
   sourceTokenId,
@@ -17,12 +19,13 @@ export const processToken = async ({
   chainId,
   ...opts
 }) => {
+  if (global.processing[tokenId]) {
+    logger.warn(`#${tokenId}: Already working on it`)
+    return
+  }
+  global.processing[tokenId] = true
   const workingDir = path.resolve(
-    path.join(
-      config.workingDir,
-      chainId.toString() + "-preview",
-      tokenId.toString()
-    )
+    path.join(config.workingDir, chainId.toString(), tokenId.toString())
   )
   const tokenInfo = `${sourceContract} / ${sourceTokenId.substr(
     0,
@@ -71,6 +74,7 @@ export const processToken = async ({
         chainId,
         error,
       })
+      global.processing[tokenId] = false
       return
     }
   } else {
@@ -78,6 +82,7 @@ export const processToken = async ({
   }
 
   if (existsSync(destinationImage) && opts.overwrite !== true) {
+    global.processing[tokenId] = false
     return destinationImage
   }
 
@@ -103,6 +108,7 @@ export const processToken = async ({
       })
     }
   }
+  global.processing[tokenId] = false
 }
 
 const processError = (opts) => {
