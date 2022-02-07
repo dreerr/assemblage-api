@@ -1,14 +1,15 @@
-import { activeChains, contractOnChain } from "../utils/web3.js"
+import { contracts } from "../utils/web3.js"
 import { processToken } from "./process-token.js"
 import { logger } from "../utils/logger.js"
+import config from "../config.js"
 
 export default () => {
-  activeChains().forEach(listenOnChain)
+  config.activeChains.forEach(listenOnChain)
 }
 
 const listenOnChain = (chainId) => {
-  const contract = contractOnChain(chainId)
-  if (!contract) return
+  const contract = contracts[chainId]
+  if (!contract) throw Error(`Could not get contract for ${chainId}`)
   logger.info(
     `Listening for 'SourceTokenMinted' on ${chainId} / ${contract.address}`
   )

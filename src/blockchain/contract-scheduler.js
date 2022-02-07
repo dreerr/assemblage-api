@@ -1,9 +1,10 @@
+import fs from "fs"
 import schedule from "node-schedule"
-import { logger } from "../utils/logger.js"
-import { activeChains, contractOnChain } from "../utils/web3.js"
-import { processToken } from "./process-token.js"
 import { currentProcessCount } from "assemblage-algorithm"
-import fs from 'fs';
+import config from "../config.js"
+import { logger } from "../utils/logger.js"
+import { processToken } from "./process-token.js"
+import { contracts } from "../utils/web3.js"
 
 export default async () => {
   checkMintedTokens()
@@ -13,12 +14,13 @@ export default async () => {
 }
 
 export const checkMintedTokens = async () => {
+  logger.debug("Starting new scheduled Job checkMintedTokens")
   if (currentProcessCount() > 0) {
     logger.info(`${currentProcessCount()} items in queue, will check later.`)
     return
   }
-  activeChains().forEach(async (chainId) => {
-    const contract = contractOnChain(chainId)
+  config.activeChains.forEach(async (chainId) => {
+    const contract = contracts[chainId]
     let totalSupply = 0
     try {
       totalSupply = await contract.totalSupply()
@@ -44,7 +46,7 @@ export const checkMintedTokens = async () => {
 }
 
 const writeTotalSupply = (totalSupply) => {
-  const filePath = 'data/status.json'
+  const filePath = "data/status.json"
   let info = {}
   try {
     info = JSON.parse(fs.readFileSync(filePath))
@@ -52,9 +54,9 @@ const writeTotalSupply = (totalSupply) => {
     logger.warn("Could not read status file")
   }
   info.count = parseInt(totalSupply)
-  const data = JSON.stringify(info);
+  const data = JSON.stringify(info)
   try {
-    fs.writeFileSync(filePath, data);
+    fs.writeFileSync(filePath, data)
   } catch (error) {
     logger.warn("Could not write status file")
   }

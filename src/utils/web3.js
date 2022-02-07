@@ -2,6 +2,7 @@ import { ethers } from "ethers"
 import { readFileSync, existsSync } from "fs"
 import { logger } from "./logger.js"
 import config from "../config.js"
+import Web3WsProvider from "web3-providers-ws"
 
 if (
   !existsSync(config.contractAddress) ||
@@ -21,36 +22,37 @@ const chainNums = {
   rinkeby: 4,
 }
 
-export const providers = {
-  mainnet: new ethers.providers.WebSocketProvider(config.node.mainnet),
-  rinkeby: new ethers.providers.WebSocketProvider(config.node.rinkeby),
-  localhost: new ethers.providers.JsonRpcProvider(config.node.localhost),
-}
+export const providers = {}
+export const contracts = {}
 
-export const activeChains = () => {
-  return Array.from(config.activeChains)
-}
+config.activeChains.forEach((chainId) => {
+  providers[chainId] = new ethers.providers.Web3Provider(
+    new Web3WsProvider(config.node[chainId], {
+      clientConfig: {
+        keepalive: true,
+        keepaliveInterval: 60000, // ms
+      },
+      // Enable auto reconnection
+      reconnect: {
+        auto: true,
+        delay: 5000, // ms
+        maxAttempts: 5,
+        onTimeout: false,
+      },
+    })
+  )
 
-const contracts = {}
-export const contractOnChain = (chainId) => {
-  if (!contracts[chainId]) {
-    const contractAddress = addresses.Assemblage[chainNums[chainId]]
-    const provider = providers[chainId]
-    try {
-      contracts[chainId] = new ethers.Contract(
-        contractAddress,
-        contractInterface.abi,
-        provider
-      )
-    } catch (error) {
-      logger.error(
-        `Could not instanciate contract on chain ${chainId} ${error}`
-      )
-      return
-    }
+  const contractAddress = addresses.Assemblage[chainNums[chainId]]
+  try {
+    contracts[chainId] = new ethers.Contract(
+      contractAddress,
+      contractInterface.abi,
+      providers[chainId]
+    )
+  } catch (error) {
+    logger.error(`Could not instanciate contract on chain ${chainId} ${error}`)
   }
-  return contracts[chainId]
-}
+})
 
 export const openSeaAsset = (chainId, address, tokenId) => {
   if (chainId === "localhost") return null

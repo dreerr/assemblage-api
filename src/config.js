@@ -6,7 +6,7 @@ const parseList = (value) => {
 }
 
 const config = {
-  activeChains: parseList(process.env.ACTIVE_CHAINS),
+  activeChains: Array.from(parseList(process.env.ACTIVE_CHAINS)),
   apiBaseURI: {
     localhost: process.env.BASE_URI_LOCALHOST,
     mainnet: process.env.BASE_URI_MAINNET,
