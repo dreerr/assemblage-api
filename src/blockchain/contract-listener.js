@@ -13,7 +13,7 @@ const listenOnChain = (chainId) => {
   logger.info(
     `Listening for 'SourceTokenMinted' on ${chainId} / ${contract.address}`
   )
-  contract.on("SourceTokenMinted", (source, id, to, event) => {
+  contract.on("SourceTokenMinted", (source, id) => {
     const opts = {
       sourceContract: source.sourceContract,
       sourceTokenId: source.sourceTokenId.toString(),
