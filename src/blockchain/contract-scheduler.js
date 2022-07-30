@@ -25,7 +25,9 @@ export const checkMintedTokens = async () => {
     try {
       totalSupply = await contract.totalSupply()
     } catch (error) {
-      logger.error(`Could not get 'contract.totalSupply()' on ${chainId}`)
+      logger.error(
+        `Could not get 'contract.totalSupply()' on ${chainId}: ${error}`
+      )
       return
     }
     writeTotalSupply(totalSupply)
