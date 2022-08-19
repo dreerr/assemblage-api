@@ -36,8 +36,7 @@ const config = {
   env: process.env.NODE_ENV,
   ipfsGateway: process.env.IPFS_GATEWAY,
   moralis: {
-    serverUrl: process.env.MORALIS_SERVER_URL,
-    appId: process.env.MORALIS_APPLICATION_ID,
+    apiKey: process.env.MORALIS_API_KEY,
   },
   node: {
     mainnet: process.env.NODE_MAINNET,

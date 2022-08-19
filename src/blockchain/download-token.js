@@ -1,5 +1,4 @@
 import { ethers } from "ethers"
-import Moralis from "moralis/node.js"
 import got from "got"
 import mime from "mime-types"
 import { promisify } from "node:util"
@@ -18,8 +17,6 @@ const ERC721 = JSON.parse(
 const pipeline = promisify(stream.pipeline)
 
 const gotOptions = { https: { rejectUnauthorized: !config.unsafeHttps } }
-
-Moralis.start(config.moralis)
 
 export const downloadToken = async (opts) => {
   let result
@@ -105,9 +102,19 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId, id }) => {
     }
 
     // TRY MORALIS
-    const options = { address, token_id: tokenId, chain: chainId }
+    const options = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "X-API-Key": config.moralis.apiKey,
+      },
+    }
+
     try {
-      const tokenData = await Moralis.Web3API.token.getTokenIdMetadata(options)
+      const tokenData = await got(
+        `https://deep-index.moralis.io/api/v2/nft/${address}/${tokenId}?chain=eth&format=decimal`,
+        options
+      ).json()
       if (tokenData.metadata) {
         const metadata = JSON.parse(tokenData.metadata)
         if (imageField(metadata)) {
