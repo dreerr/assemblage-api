@@ -6,6 +6,11 @@ chai.use(chaiAsPromised)
 
 const testTokens = [
   {
+    address: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
+    tokenId: "1477",
+    chainId: "mainnet",
+  },
+  {
     address: "0x26FD2D6a09A861CC6C16716199eEF6bdB4FD1edf",
     tokenId: "0",
     chainId: "rinkeby",

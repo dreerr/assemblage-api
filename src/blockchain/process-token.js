@@ -114,6 +114,7 @@ export const processToken = async ({
   backup()
 
   global.processing[tokenId] = false
+  return destinationImage
 }
 
 const processError = (opts) => {
