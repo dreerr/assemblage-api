@@ -2,6 +2,7 @@ import fs from "fs"
 import schedule from "node-schedule"
 import { currentProcessCount } from "assemblage-algorithm"
 import config from "../config.js"
+import backup from "../utils/rsync.js"
 import { logger } from "../utils/logger.js"
 import { processToken } from "./process-token.js"
 import { contracts } from "../utils/web3.js"
@@ -19,6 +20,7 @@ export const checkMintedTokens = async () => {
     logger.info(`${currentProcessCount()} items in queue, will check later.`)
     return
   }
+  backup()
   config.activeChains.forEach(async (chainId) => {
     const contract = contracts[chainId]
     let totalSupply = 0

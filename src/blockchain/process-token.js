@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, writeFileSync } from "fs"
 import { addToQueue } from "assemblage-algorithm"
 import { downloadToken } from "./download-token.js"
 import metadata from "../utils/metadata.js"
+import backup from "../utils/rsync.js"
 import glob from "glob"
 import { sendPhoto, sendText } from "../utils/telegram.js"
 dotenv.config()
@@ -40,7 +41,7 @@ export const processToken = async ({
     logger.debug(`#${tokenId}: Creating directory ${workingDir}`)
     mkdirSync(workingDir, { recursive: true })
   }
-  // TODO 1. WRITE METADATA
+  // 1. WRITE METADATA
   if (!existsSync(destinationData) || opts.overwrite) {
     logger.debug(`#${tokenId}: Writing metadata ${destinationData}`)
     writeFileSync(
@@ -108,6 +109,10 @@ export const processToken = async ({
       })
     }
   }
+
+  // 4. UPLOAD ASSEMBLAGE
+  backup()
+
   global.processing[tokenId] = false
 }
 

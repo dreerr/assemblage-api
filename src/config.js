@@ -12,6 +12,7 @@ const config = {
     mainnet: process.env.BASE_URI_MAINNET,
     rinkeby: process.env.BASE_URI_RINKEBY,
   },
+  backupDest: process.env.BACKUP_DEST,
   baseUrl: process.env.BASE_URL,
   contractAddress: process.env.CONTRACT_ADRESSESS,
   contractInterface: process.env.CONTRACT_INTERFACE,
