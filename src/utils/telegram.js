@@ -4,7 +4,8 @@ import TelegramBot from "node-telegram-bot-api"
 import config from "../config.js"
 import glob from "glob"
 import { downloadImage } from "../blockchain/download-token.js"
-import { copySync } from "fs-extra"
+import pkg from "fs-extra"
+const { copySync } = pkg
 import { checkMintedTokens } from "../blockchain/contract-scheduler.js"
 import { logger } from "./logger.js"
 
