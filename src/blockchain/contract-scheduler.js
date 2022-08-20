@@ -10,7 +10,7 @@ import { contracts } from "../utils/web3.js"
 export default async () => {
   checkMintedTokens()
   const rule = new schedule.RecurrenceRule()
-  rule.minute = [0, 10, 20, 30, 40, 50]
+  rule.minute = [0, 15, 30, 45]
   schedule.scheduleJob(rule, checkMintedTokens)
 }
 
