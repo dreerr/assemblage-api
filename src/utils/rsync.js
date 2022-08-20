@@ -3,7 +3,7 @@ import config from "../config.js"
 import { logger } from "../utils/logger.js"
 import { sendText } from "../utils/telegram.js"
 
-const enabled = config.backupDest !== undefined && config.backupDest !== null
+const enabled = config.backupDest !== undefined || config.backupDest !== null
 
 if (!enabled) logger.info("rsync backup/upload is disabled!")
 
