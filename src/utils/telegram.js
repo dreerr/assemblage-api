@@ -5,9 +5,9 @@ import config from "../config.js"
 import glob from "glob"
 import { downloadImage } from "../blockchain/download-token.js"
 import pkg from "fs-extra"
-const { copySync } = pkg
 import { checkMintedTokens } from "../blockchain/contract-scheduler.js"
 import { logger } from "./logger.js"
+const { copySync } = pkg
 
 process.env.NTBA_FIX_350 = true
 
