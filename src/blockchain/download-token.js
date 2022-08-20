@@ -110,9 +110,10 @@ const getTokenMetadata = async ({ address, tokenId, useLive, chainId, id }) => {
       },
     }
 
+    const chain = (chainId = "mainnet" ? "eth" : "rinkeby")
     try {
       const tokenData = await got(
-        `https://deep-index.moralis.io/api/v2/nft/${address}/${tokenId}?chain=eth&format=decimal`,
+        `https://deep-index.moralis.io/api/v2/nft/${address}/${tokenId}?chain=${chain}&format=decimal`,
         options
       ).json()
       if (tokenData.metadata) {
