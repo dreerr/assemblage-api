@@ -10,7 +10,7 @@ if (!enabled) logger.info("rsync backup/upload is disabled!")
 const backup = new Rsync()
   .shell("ssh")
   .flags("az")
-  .source("./data/mainnet/")
+  .source("./data/")
   .destination(config.backupDest)
 
 export default () => {

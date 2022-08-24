@@ -20,7 +20,6 @@ export const checkMintedTokens = async () => {
     logger.info(`${currentProcessCount()} items in queue, will check later.`)
     return
   }
-  backup()
   config.activeChains.forEach(async (chainId) => {
     const contract = contracts[chainId]
     let totalSupply = 0
@@ -47,6 +46,7 @@ export const checkMintedTokens = async () => {
     }
     logger.debug(`Done checking ${totalSupply} tokens on ${chainId}`)
   })
+  backup()
 }
 
 const writeTotalSupply = (totalSupply) => {
